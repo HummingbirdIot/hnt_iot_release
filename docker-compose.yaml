@@ -1,0 +1,70 @@
+version: '3'
+services:
+  packet-forwarder:
+    image: "hummingbirdiot/hnt-pkt-fwd:0.4.0"
+    network_mode: "host"
+    logging:
+        driver: journald
+    privileged: true
+    restart: always
+    volumes:
+      - '/etc/hw_version:/etc/hw_version'
+    devices:
+      - "/dev/spidev0.0:/dev/spidev0.0"
+      - "/dev/ttyAMA1:/dev/AMA1"
+  helium-miner:
+    image: "quay.io/team-helium/miner:miner-arm64_2021.10.07.0_GA"
+    privileged: true
+    network_mode: "host"
+    restart: always
+    logging:
+        driver: journald
+    ulimits:
+      nofile:
+        soft: "64000"
+        hard: "64000"
+    expose:
+      - "4467"
+      - "1680"
+      - "44158"
+        #ports:
+        #  - "44158:44158/tcp"
+    volumes:
+      - '/var/run/dbus:/var/run/dbus'
+      - '/var/data:/var/data'
+      - '/etc/lsb_release:/etc/lsb_release'
+      - 'pktfwdr:/var/pktfwd'
+      - './config/overlay/docker.config:/opt/miner/releases/2021.10.07.0/sys.config'
+    cap_add:
+      - SYS_RAWIO
+    devices:
+      - "/dev/i2c-1:/dev/i2c-1"
+    environment:
+      - 'REGION_OVERRIDE=CN470'
+        # - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
+      - 'RELEASE_BUMPER=foobar'
+    labels:
+      io.balena.features.dbus: '1'
+  gateway-config:
+    image: "hummingbirdiot/gateway-config:0.1.19"
+    logging:
+        driver: journald
+    network_mode: "host"
+    restart: always
+    privileged: true
+    stdin_open: true
+    tty: true
+    ulimits:
+      nofile:
+        soft: "64000"
+        hard: "64000"
+    volumes:
+      - '/var/run/dbus:/var/run/dbus'
+      - '/var/lib/bluetooth:/var/lib/bluetooth'
+      - '/etc/lsb_release:/etc/lsb_release'
+      - '/var/data/public_keys:/var/data/public_keys'
+
+volumes:
+  miner-storage:
+  miner-log:
+  pktfwdr:
