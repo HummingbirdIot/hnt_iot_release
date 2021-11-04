@@ -1,6 +1,15 @@
 #!/bin/bash
-VERSION=0.1
+VERSION=0.6
 SELF_NAME=`basename "$0"`
+
+function checkMinerDiskUsage()
+{
+  usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
+  if ((usage > 80)); then
+    echo "trim miner"
+    exec sudo ./trim_miner.sh
+  fi
+}
 
 function git_setup() {
   git config --global user.email "hummingbirdiot@example.com"
@@ -39,6 +48,7 @@ function setupDbus() {
 
 function startHummingbird() {
   echo "Start hummingbird "
+  checkMinerDiskUsage
   docker-compose up -d
 }
 
@@ -46,6 +56,8 @@ function stopHummingbirdMiner() {
   echo "Stop hummingbird miner"
   docker-compose down
 }
+
+OTA_STATUS_FILE="/tmp/hummingbird_ota"
 
 function checkOriginUpdate() {
   SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)
@@ -55,16 +67,21 @@ function checkOriginUpdate() {
   HEADHASH=$(git rev-parse HEAD)
   UPSTREAMHASH=$(git rev-parse main@{upstream})
 
-  if [ "$HEADHASH" != "$UPSTREAMHASH" ]
-  then
+  if [ "$HEADHASH" != "$UPSTREAMHASH" ]; then
   # stop docker-compose first
-    echo "Do self update"
-    stopHummingbirdMiner
-    git stash
-    git merge '@{u}'
-    chmod +x ${SELF_NAME}
-    exec sudo ./${SELF_NAME}
-  fi
+    if [ -f "$OTA_STATUS_FILE" ]; then
+      echo "already in ota"
+    else
+      echo "Do self update"
+      touch /tmp/hummingbird_ota
+      stopHummingbirdMiner
+      echo sudo "starting OTA"
+      git stash
+      git merge '@{u}'
+      chmod +x ${SELF_NAME}
+      exec sudo ./${SELF_NAME}
+    fi
+ fi
 }
 
 echo ">>>>> hummingbirdiot start <<<<<<"
@@ -77,3 +94,4 @@ rfkill unblock all
 update_release_version
 setupDbus
 startHummingbird
+rm -f ${OTA_STATUS_FILE}
