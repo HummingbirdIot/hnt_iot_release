@@ -12,8 +12,8 @@ function checkMinerDiskUsage()
 }
 
 function git_setup() {
-  git config --global user.email "hummingbirdiot@example.com"
-  git config --global user.name "hummingbirdiot"
+  git config user.email "hummingbirdiot@example.com"
+  git config user.name "hummingbirdiot"
 }
 
 function check_public_keyfile() {
@@ -86,6 +86,9 @@ function checkOriginUpdate() {
 
 echo ">>>>> hummingbirdiot start <<<<<<"
 echo ${SELF_NAME}
+# temp fix for first wait for network up when docker image have not been download
+# todo: remove the delay
+sleep 30
 git_setup
 check_public_keyfile
 checkOriginUpdate
