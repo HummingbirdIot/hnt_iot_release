@@ -2,6 +2,8 @@
 VERSION=0.6
 SELF_NAME=`basename "$0"`
 
+source "$(dirname "$0")/hm_diag_upgrade.sh"
+
 function checkMinerDiskUsage()
 {
   usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
@@ -98,3 +100,6 @@ update_release_version
 setupDbus
 startHummingbird
 rm -f ${OTA_STATUS_FILE}
+
+# hm-diag check and upgrade
+upgrade_hm_diag
