@@ -102,3 +102,5 @@ rm -f ${OTA_STATUS_FILE}
 # hm-diag check and upgrade
 source "$(dirname "$0")/hm_diag_upgrade.sh"
 upgrade_hm_diag
+
+exit 0
