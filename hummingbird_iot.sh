@@ -65,7 +65,7 @@ function checkOriginUpdate() {
   git fetch
 
   HEADHASH=$(git rev-parse HEAD)
-  UPSTREAMHASH=$(git rev-parse main@{upstream})
+  UPSTREAMHASH=$(git rev-parse @{upstream})
 
   if [ "$HEADHASH" != "$UPSTREAMHASH" ]; then
   # stop docker-compose first
