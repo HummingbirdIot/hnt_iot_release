@@ -1,7 +1,7 @@
 version: '3'
 services:
   packet-forwarder:
-    image: "hummingbirdiot/hnt-pkt-fwd:0.4.0"
+    image: "hummingbirdiot/hnt-pkt-fwd:0.4.0-us915"
     network_mode: "host"
     logging:
         driver: journald
