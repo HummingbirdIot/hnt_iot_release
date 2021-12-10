@@ -35,6 +35,7 @@ services:
       - '/etc/lsb_release:/etc/lsb_release'
       - 'pktfwdr:/var/pktfwd'
       - './config/overlay/docker.config:/opt/miner/releases/2021.12.09.0/sys.config'
+      - '/tmp:/tmp'
     cap_add:
       - SYS_RAWIO
     devices:
