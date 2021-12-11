@@ -82,7 +82,29 @@ function setupDbus() {
 function startHummingbird() {
   echo "Start hummingbird "
   checkMinerDiskUsage
-  docker-compose up -d
+  local n=0
+  local try=3
+
+  until [[ $n -ge $try ]]
+  do
+    docker-compose up -d
+    if [ $? -eq 0 ]; then
+      return 0
+    else
+      sleep 1
+      ((n++))
+    fi
+  done
+
+  ## still failed try prune then
+  ping -q -w 1 -c 1  8.8.8.8 >/dev/null 2>&1
+  if [ $? -eq 0]; then
+    sudo docker system prune -a -f
+    docker-compose up -d
+  else
+    echo "no internal access???"
+  fi
+
 }
 
 function stopHummingbirdMiner() {
@@ -127,7 +149,7 @@ checkOriginUpdate
 rfkill unblock all
 update_release_version
 setupDbus
-retry 3 startHummingbird
+startHummingbird
 rm -f ${OTA_STATUS_FILE}
 
 # hm-diag check and upgrade
