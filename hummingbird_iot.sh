@@ -1,6 +1,39 @@
 #!/bin/bash
-VERSION=0.6
+VERSION=0.7
 SELF_NAME=`basename "$0"`
+
+function retry()
+{
+  local n=0
+  local try=$1
+  local cmd="${@: 2}"
+  [[ $# -le 1 ]] && {
+    echo "Usage $0 <retry_number> <Command>"; }
+
+  until [[ $n -ge $try ]]
+  do
+    $cmd && break || {
+      echo "Command Fail.."
+          ((n++))
+          echo "retry $n ::"
+          sleep 1;
+        }
+
+  done
+}
+
+function checkForNetwork() {
+  tryNum=1
+  while [ $tryNum -le 20 ]
+  do
+    ping -q -w 1 -c 1  `ip r | grep default | cut -d ' ' -f 3 | head -n 1` > /dev/null
+    if [ $? -eq 0 ]; then
+      return 0
+    fi
+    tryNum=$(( $tryNum + 1 ))
+  done
+  return -1
+}
 
 function checkMinerDiskUsage()
 {
@@ -65,7 +98,7 @@ function checkOriginUpdate() {
   git fetch
 
   HEADHASH=$(git rev-parse HEAD)
-  UPSTREAMHASH=$(git rev-parse main@{upstream})
+  UPSTREAMHASH=$(git rev-parse @{upstream})
 
   if [ "$HEADHASH" != "$UPSTREAMHASH" ]; then
   # stop docker-compose first
@@ -86,9 +119,7 @@ function checkOriginUpdate() {
 
 echo ">>>>> hummingbirdiot start <<<<<<"
 echo ${SELF_NAME}
-# temp fix for first wait for network up when docker image have not been download
-# todo: remove the delay
-sleep 30
+checkForNetwork
 git_setup
 check_public_keyfile
 checkOriginUpdate
@@ -96,7 +127,7 @@ checkOriginUpdate
 rfkill unblock all
 update_release_version
 setupDbus
-startHummingbird
+retry 3 startHummingbird
 rm -f ${OTA_STATUS_FILE}
 
 # hm-diag check and upgrade

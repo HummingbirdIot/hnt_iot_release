@@ -13,7 +13,7 @@ services:
       - "/dev/spidev0.0:/dev/spidev0.0"
       - "/dev/ttyAMA1:/dev/AMA1"
   helium-miner:
-    image: "quay.io/team-helium/miner:miner-arm64_2021.10.29.0_GA"
+    image: "quay.io/team-helium/miner:miner-arm64_2021.12.09.0_GA"
     privileged: true
     network_mode: "host"
     restart: always
@@ -34,7 +34,8 @@ services:
       - '/var/data/:/var/data'
       - '/etc/lsb_release:/etc/lsb_release'
       - 'pktfwdr:/var/pktfwd'
-      - './config/overlay/docker.config:/opt/miner/releases/2021.10.29.0/sys.config'
+      - './config/overlay/docker.config:/opt/miner/releases/2021.12.09.0/sys.config'
+      - '/tmp:/tmp'
     cap_add:
       - SYS_RAWIO
     devices:
