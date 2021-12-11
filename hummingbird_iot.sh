@@ -44,16 +44,16 @@ function checkMinerDiskUsage()
   fi
 }
 
-function git_setup() {
+function gitSetup() {
   git config user.email "hummingbirdiot@example.com"
   git config user.name "hummingbirdiot"
 }
 
-function check_public_keyfile() {
+function checkPublicKeyfile() {
   sudo touch /var/data/public_keys
 }
 
-function update_release_version() {
+function updateReleaseVersion() {
   diff ./config/lsb_release /etc/lsb_release >/dev/null 2>&1
   if [ $? -ne 0 ];then
     sudo cp ./config/lsb_release /etc/lsb_release
@@ -81,7 +81,6 @@ function setupDbus() {
 
 function startHummingbird() {
   echo "Start hummingbird "
-  checkMinerDiskUsage
   local n=0
   local try=3
 
@@ -102,11 +101,10 @@ function startHummingbird() {
     docker-compose down
     #sudo docker system prune -a -f
     sudo docker images -a | grep "miner-arm64" | awk '{print $3}' | xargs docker rmi
-    docker-compose up -d
+    retry 3 docker-compose up -d
   else
     echo "no internal access???"
   fi
-
 }
 
 function stopHummingbirdMiner() {
@@ -144,12 +142,13 @@ function checkOriginUpdate() {
 echo ">>>>> hummingbirdiot start <<<<<<"
 echo ${SELF_NAME}
 checkForNetwork
-git_setup
-check_public_keyfile
+checkMinerDiskUsage
+gitSetup
+checkPublicKeyfile
 checkOriginUpdate
 # unblock rfkill
 rfkill unblock all
-update_release_version
+updateReleaseVersion
 setupDbus
 startHummingbird
 rm -f ${OTA_STATUS_FILE}
