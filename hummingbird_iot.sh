@@ -98,7 +98,7 @@ function startHummingbird() {
 
   ## still failed try prune then
   ping -q -w 1 -c 1  8.8.8.8 >/dev/null 2>&1
-  if [ $? -eq 0]; then
+  if [ $? -eq 0 ]; then
     sudo docker system prune -a -f
     docker-compose up -d
   else
