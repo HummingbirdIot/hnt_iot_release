@@ -1,10 +1,7 @@
 #!/bin/bash
 dockerContainer="hnt_iot_helium-miner_1"
-otaDir="/var/for_ota"
-snapshotName=`date "+snap-%Y-%m-%d"`
-snapshotSrcPath="/var/data/snap/${snapshotName}"
-snapshotSrcHostPath="/var/data/snap/${snapshotName}"
-snapshotOtaPath="${otaDir}/${snapshotName}"
+height=`docker exec hnt_iot_helium-miner_1 miner info height | awk -F' ' '{print $2}'`
+fileName="/tmp/snapshot-${height}"
 
 check_miner_exist() {
   docker ps | grep ${dockerContainer}
@@ -18,11 +15,9 @@ check_miner_exist() {
 
 gen_snapshot() {
   echo "genenate snapshot"
-  mkdir -p ${otaDir}
-  sudo rm -fr /var/data/snap/*
-  docker exec ${dockerContainer} miner repair sync_resume
-  docker exec ${dockerContainer} miner snapshot take ${snapshotSrcPath}
-  sudo mv ${snapshotSrcHostPath} ${otaDir}
+  sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
+#  docker exec ${dockerContainer} miner repair sync_resume
+  docker exec ${dockerContainer} miner snapshot take $fileName
 }
 
 
@@ -32,17 +27,15 @@ clean_miner() {
   sudo rm -fr /var/data/state_channel.db
   sudo rm -fr /var/data/ledger.db
   sudo rm -fr /var/data/blockchain.db
-  docker start ${dockerContainer}
+#  docker start ${dockerContainer}
 }
 
 apply_snapshot() {
-  echo "in apply stop"
-  docker stop ${dockerContainer}
-
-  sudo cp ${snapshotOtaPath} ${snapshotSrcHostPath}
+  echo "in apply snapshot"
   docker start ${dockerContainer}
-  docker exec ${dockerContainer} miner snapshot load ${snapshotSrcPath}
+
+  docker exec ${dockerContainer} miner snapshot load $fileName
 }
 
 
-clean_miner
+gen_snapshot && clean_miner && apply_snapshot
