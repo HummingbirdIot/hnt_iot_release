@@ -39,7 +39,7 @@ function freeDiskPressure() {
   usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
   if ((usage > 80)); then
     echo "trim miner"
-    exec sudo ./trim_miner.sh
+    sudo bash ./trim_miner.sh
   fi
 }
 
@@ -153,7 +153,6 @@ startHummingbird
 rm -f ${OTA_STATUS_FILE}
 
 # hm-diag check and upgrade
-source "$(dirname "$0")/hm_diag_upgrade.sh"
-upgrade_hm_diag
+bash ./hm_diag_upgrade.sh
 
 exit 0

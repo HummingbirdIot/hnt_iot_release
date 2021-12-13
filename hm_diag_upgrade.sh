@@ -75,3 +75,5 @@ function upgrade_hm_diag() {
     echo "$deb_name upgrade done"
   fi
 }
+
+upgrade_hm_diag
