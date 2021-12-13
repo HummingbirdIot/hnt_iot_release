@@ -39,19 +39,24 @@ clean_miner() {
   sudo rm -fr /var/data/state_channel.db
   sudo rm -fr /var/data/ledger.db
   sudo rm -fr /var/data/blockchain.db
-#  docker start ${dockerContainer}
 }
 
 apply_snapshot() {
   echo "in apply snapshot: " $fileName
   docker start ${dockerContainer}
-
-  retry 2 docker exec ${dockerContainer} miner snapshot load $fileName
+  sleep 30
+  docker exec ${dockerContainer} miner snapshot load $fileName
 }
 
 
 # do clean stuff
 sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
-retry 3 gen_snapshot
-clean_miner
-apply_snapshot
+
+if [ "$1" == "createSnap" ]; then
+  retry 5 gen_snapshot
+  clean_miner
+  retry 2 apply_snapshot
+else
+  clean_miner
+  docker start ${dockerContainer}
+fi
