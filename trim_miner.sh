@@ -38,4 +38,6 @@ apply_snapshot() {
 }
 
 
-gen_snapshot && clean_miner && apply_snapshot
+gen_snapshot
+clean_miner
+apply_snapshot
