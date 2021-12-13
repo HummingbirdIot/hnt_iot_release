@@ -39,7 +39,7 @@ function freeDiskPressure() {
   usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
   if ((usage > 80)); then
     echo "trim miner"
-    sudo bash ./trim_miner.sh
+    sudo bash ./trim_miner.sh createSnap
   fi
 }
 
