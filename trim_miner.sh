@@ -46,7 +46,7 @@ apply_snapshot() {
   echo "in apply snapshot: " $fileName
   docker start ${dockerContainer}
 
-  docker exec ${dockerContainer} miner snapshot load $fileName
+  retry 2 docker exec ${dockerContainer} miner snapshot load $fileName
 }
 
 
