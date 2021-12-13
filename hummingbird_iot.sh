@@ -22,7 +22,7 @@ function retry()
   done
 }
 
-function checkForNetwork() {
+function tryWaitNetwork() {
   tryNum=1
   while [ $tryNum -le 20 ]
   do
@@ -35,8 +35,7 @@ function checkForNetwork() {
   return -1
 }
 
-function checkMinerDiskUsage()
-{
+function freeDiskPressure() {
   usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
   if ((usage > 80)); then
     echo "trim miner"
@@ -103,7 +102,7 @@ function startHummingbird() {
     sudo docker images -a | grep "miner-arm64" | awk '{print $3}' | xargs docker rmi
     retry 3 docker-compose up -d
   else
-    echo "no internal access???"
+    echo "no network access???"
   fi
 }
 
@@ -141,8 +140,8 @@ function checkOriginUpdate() {
 
 echo ">>>>> hummingbirdiot start <<<<<<"
 echo ${SELF_NAME}
-checkForNetwork
-checkMinerDiskUsage
+tryWaitNetwork
+freeDiskPressure
 gitSetup
 checkPublicKeyfile
 checkOriginUpdate
