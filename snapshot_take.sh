@@ -3,7 +3,7 @@ idFile=/tmp/.snapshot_take_id
 
 if test -f "$idFile";then
   echo "in progress"
-  return 127
+  return 101
 fi
 
 touch $idFile
