@@ -1,4 +1,6 @@
 #!/bin/bash
+source "$(dirname "$0")/util.sh"
+
 dockerContainer="hnt_iot_helium-miner_1"
 height=`docker exec hnt_iot_helium-miner_1 miner info height | awk -F' ' '{print $2}'`
 fileName="/tmp/snapshot-${height}"
@@ -15,9 +17,19 @@ check_miner_exist() {
 
 gen_snapshot() {
   echo "genenate snapshot"
-  sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
 #  docker exec ${dockerContainer} miner repair sync_resume
+  if [ -f "$fileName" ]; then
+    echo "generated snapshot: " $fileName
+    return 0
+  fi
   docker exec ${dockerContainer} miner snapshot take $fileName
+
+  sleep 5
+  if [ -f "$fileName" ]; then
+    echo "generated snapshot: " $fileName
+    return 0
+  fi
+  return 1
 }
 
 
@@ -31,13 +43,15 @@ clean_miner() {
 }
 
 apply_snapshot() {
-  echo "in apply snapshot"
+  echo "in apply snapshot: " $fileName
   docker start ${dockerContainer}
 
   docker exec ${dockerContainer} miner snapshot load $fileName
 }
 
 
-gen_snapshot
+# do clean stuff
+sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
+retry 3 gen_snapshot
 clean_miner
 apply_snapshot
