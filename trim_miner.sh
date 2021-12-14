@@ -51,9 +51,10 @@ apply_snapshot() {
 
 # do clean stuff
 sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
+sudo rm -fr /var/data/snap/snap*
 
 if [ "$1" == "createSnap" ]; then
-  retry 5 gen_snapshot
+  gen_snapshot
   clean_miner
   apply_snapshot
 else
