@@ -55,7 +55,7 @@ sudo rm -fr /tmp/snapshot-* >/dev/null 2>&1
 if [ "$1" == "createSnap" ]; then
   retry 5 gen_snapshot
   clean_miner
-  retry 2 apply_snapshot
+  apply_snapshot
 else
   clean_miner
   docker start ${dockerContainer}
