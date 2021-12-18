@@ -1,6 +1,7 @@
 #!/bin/bash
-VERSION=0.7
+VERSION=0.8
 SELF_NAME=`basename "$0"`
+set -x
 
 function retry()
 {
