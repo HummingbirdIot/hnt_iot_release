@@ -76,4 +76,22 @@ function upgrade_hm_diag() {
   fi
 }
 
+function set_default_proxy() {
+  if [  -f ".proxyconf" ]; then
+    return
+  fi
+
+  cat << EOF > ./.proxyconf
+{
+  "releaseFileProxy": {
+    "type": "urlPrefix",
+    "value": "https://ghproxy.com/"
+  }
+}
+EOF
+
+  echo "set default github release proxy: `cat .proxyconf`"
+}
+
+set_default_proxy
 upgrade_hm_diag
