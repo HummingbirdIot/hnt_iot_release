@@ -41,8 +41,6 @@ services:
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
     environment:
-      - 'REGION_OVERRIDE=${REGION}'
-        # - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
       - 'RELEASE_BUMPER=foobar'
     labels:
       io.balena.features.dbus: '1'
