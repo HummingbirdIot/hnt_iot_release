@@ -1,7 +1,7 @@
 version: '3'
 services:
   packet-forwarder:
-    image: "hummingbirdiot/hnt-pkt-fwd:0.4.0-us915"
+    image: "hummingbirdiot/${PKT_FWD}:${PKT_FWD_VERSION}"
     network_mode: "host"
     logging:
         driver: journald
@@ -41,8 +41,6 @@ services:
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
     environment:
-      - 'REGION_OVERRIDE=US915'
-        # - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
       - 'RELEASE_BUMPER=foobar'
     labels:
       io.balena.features.dbus: '1'

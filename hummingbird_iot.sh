@@ -1,11 +1,7 @@
 #!/bin/bash
-VERSION=0.7
+VERSION=0.8
 SELF_NAME=`basename "$0"`
-
-function cleanDockerImages()
-{
-  sudo docker system prune -f
-}
+set -x
 
 function retry()
 {
@@ -27,7 +23,7 @@ function retry()
   done
 }
 
-function checkForNetwork() {
+function tryWaitNetwork() {
   tryNum=1
   while [ $tryNum -le 20 ]
   do
@@ -40,25 +36,24 @@ function checkForNetwork() {
   return -1
 }
 
-function checkMinerDiskUsage()
-{
+function freeDiskPressure() {
   usage=`df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'`
   if ((usage > 80)); then
     echo "trim miner"
-    exec sudo ./trim_miner.sh
+    sudo bash ./trim_miner.sh createSnap
   fi
 }
 
-function git_setup() {
+function gitSetup() {
   git config user.email "hummingbirdiot@example.com"
   git config user.name "hummingbirdiot"
 }
 
-function check_public_keyfile() {
+function checkPublicKeyfile() {
   sudo touch /var/data/public_keys
 }
 
-function update_release_version() {
+function updateReleaseVersion() {
   diff ./config/lsb_release /etc/lsb_release >/dev/null 2>&1
   if [ $? -ne 0 ];then
     sudo cp ./config/lsb_release /etc/lsb_release
@@ -86,8 +81,30 @@ function setupDbus() {
 
 function startHummingbird() {
   echo "Start hummingbird "
-  checkMinerDiskUsage
-  docker-compose up -d
+  local n=0
+  local try=3
+
+  until [[ $n -ge $try ]]
+  do
+    docker-compose up -d
+    if [ $? -eq 0 ]; then
+      return 0
+    else
+      sleep 1
+      ((n++))
+    fi
+  done
+
+  ## still failed try prune then
+  ping -q -w 1 -c 1  8.8.8.8 >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    docker-compose down
+    #sudo docker system prune -a -f
+    sudo docker images -a | grep "miner-arm64" | awk '{print $3}' | xargs docker rmi
+    retry 3 docker-compose up -d
+  else
+    echo "no network access???"
+  fi
 }
 
 function stopHummingbirdMiner() {
@@ -122,22 +139,32 @@ function checkOriginUpdate() {
  fi
 }
 
-echo ">>>>> hummingbirdiot start <<<<<<"
-echo ${SELF_NAME}
-cleanDockerImages
-checkForNetwork
-git_setup
-check_public_keyfile
-checkOriginUpdate
-# unblock rfkill
-rfkill unblock all
-update_release_version
-setupDbus
-retry 3 startHummingbird
-rm -f ${OTA_STATUS_FILE}
+function run() {
+  echo ">>>>> hummingbirdiot start <<<<<<"
+  echo ${SELF_NAME}
+  tryWaitNetwork
+  freeDiskPressure
+  gitSetup
+  checkPublicKeyfile
+  checkOriginUpdate
+  # unblock rfkill
+  rfkill unblock all
+  updateReleaseVersion
+  setupDbus
+  startHummingbird
+  rm -f ${OTA_STATUS_FILE}
 
-# hm-diag check and upgrade
-source "$(dirname "$0")/hm_diag_upgrade.sh"
-upgrade_hm_diag
+  # hm-diag check and upgrade
+  bash ./hm_diag_upgrade.sh
 
-exit 0
+  exit 0
+}
+
+case $1 in
+  run | '' ) 
+    run ;;
+  stop ) 
+    stopHummingbirdMiner ;;
+  * ) 
+    echo "unknown subcommand !"
+esac
