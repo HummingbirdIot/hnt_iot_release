@@ -1,7 +1,7 @@
 version: '3'
 services:
   packet-forwarder:
-    image: "hummingbirdiot/hnt-pkt-fwd:0.4.0"
+    image: "hummingbirdiot/${PKT_FWD}:${PKT_FWD_VERSION}"
     network_mode: "host"
     logging:
         driver: journald
@@ -13,7 +13,7 @@ services:
       - "/dev/spidev0.0:/dev/spidev0.0"
       - "/dev/ttyAMA1:/dev/AMA1"
   helium-miner:
-    image: "quay.io/team-helium/miner:miner-arm64_2021.10.07.0_GA"
+    image: "quay.io/team-helium/miner:miner-arm64_${MINER_TAG}_GA"
     privileged: true
     network_mode: "host"
     restart: always
@@ -31,17 +31,16 @@ services:
         #  - "44158:44158/tcp"
     volumes:
       - '/var/run/dbus:/var/run/dbus'
-      - '/var/data:/var/data'
+      - '/var/data/:/var/data'
       - '/etc/lsb_release:/etc/lsb_release'
       - 'pktfwdr:/var/pktfwd'
-      - './config/overlay/docker.config:/opt/miner/releases/2021.10.07.0/sys.config'
+      - './config/overlay/docker.config:/opt/miner/releases/${MINER_TAG}/sys.config'
+      - '/tmp:/tmp'
     cap_add:
       - SYS_RAWIO
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
     environment:
-      - 'REGION_OVERRIDE=CN470'
-        # - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
       - 'RELEASE_BUMPER=foobar'
     labels:
       io.balena.features.dbus: '1'
