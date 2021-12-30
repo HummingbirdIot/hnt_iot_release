@@ -33,7 +33,7 @@ function genFileName() {
 function outputState() {
   local latestName=`ls /tmp/ | egrep "^snapshot-[0-9]{1,}-[0-9]{10}$" | tail -n 1`
   local latestFile="$FILE_DIR$latestName"
-  if [ -n latestName ]; then
+  if [ -n "$latestName" ]; then
     local time=`echo $latestName | cut -d- -f 3`
     echo ">>>state:time=$time,file=$latestFile,state=done"
     exit 0
