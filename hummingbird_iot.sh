@@ -139,21 +139,32 @@ function checkOriginUpdate() {
  fi
 }
 
-echo ">>>>> hummingbirdiot start <<<<<<"
-echo ${SELF_NAME}
-tryWaitNetwork
-freeDiskPressure
-gitSetup
-checkPublicKeyfile
-checkOriginUpdate
-# unblock rfkill
-rfkill unblock all
-updateReleaseVersion
-setupDbus
-startHummingbird
-rm -f ${OTA_STATUS_FILE}
+function run() {
+  echo ">>>>> hummingbirdiot start <<<<<<"
+  echo ${SELF_NAME}
+  tryWaitNetwork
+  freeDiskPressure
+  gitSetup
+  checkPublicKeyfile
+  checkOriginUpdate
+  # unblock rfkill
+  rfkill unblock all
+  updateReleaseVersion
+  setupDbus
+  startHummingbird
+  rm -f ${OTA_STATUS_FILE}
 
-# hm-diag check and upgrade
-bash ./hm_diag_upgrade.sh
+  # hm-diag check and upgrade
+  bash ./hm_diag_upgrade.sh
 
-exit 0
+  exit 0
+}
+
+case $1 in
+  run | '' ) 
+    run ;;
+  stop ) 
+    stopHummingbirdMiner ;;
+  * ) 
+    echo "unknown subcommand !"
+esac
