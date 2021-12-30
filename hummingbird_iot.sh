@@ -117,7 +117,7 @@ OTA_STATUS_FILE="/tmp/hummingbird_ota"
 function checkOriginUpdate() {
   SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)
 
-  git fetch
+  git fetch origin `git rev-parse --abbrev-ref HEAD`
 
   HEADHASH=$(git rev-parse HEAD)
   UPSTREAMHASH=$(git rev-parse @{upstream})
