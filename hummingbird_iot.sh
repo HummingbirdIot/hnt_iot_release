@@ -139,6 +139,10 @@ function checkOriginUpdate() {
  fi
 }
 
+function cleanSavedSnapshot() {
+  find /var/data/saved-snaps/ -type f -printf "%T@ %p\n" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -153,6 +157,7 @@ function run() {
   setupDbus
   startHummingbird
   rm -f ${OTA_STATUS_FILE}
+  cleanSavedSnapshot
 
   # hm-diag check and upgrade
   bash ./hm_diag_upgrade.sh
