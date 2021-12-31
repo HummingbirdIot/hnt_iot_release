@@ -1,6 +1,7 @@
 #!/bin/bash
+source "$(dirname "$0")/const.sh"
 
-MC=hnt_iot_helium-miner_1 # miner container name
+MC="$CONTAINER_MINER" # miner container name
 FILE_DIR=/tmp/
 ID_FILE=$FILE_DIR.snapshot_take
 
@@ -57,7 +58,7 @@ function doSnapshot(){
   fileName=`genFileName` &&
     printf "file=$fileName\ntime=`date +%s`" > $ID_FILE &&
     echo "to snapshot ..." &&
-    sudo docker exec hnt_iot_helium-miner_1 miner snapshot take $fileName
+    sudo docker exec $MC miner snapshot take $fileName
 }
 
 

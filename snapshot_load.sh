@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-MC=hnt_iot_helium-miner_1 # miner container name
+source "$(dirname "$0")/const.sh"
+
+MC="$CONTAINER_MINER" # miner container name
 ID_FILE=/tmp/.snapshot_load
 
 trap "rm -f $ID_FILE" EXIT
@@ -37,4 +39,4 @@ fi
 
 printf "file=$fileName\ntime=`date +%s`" > $ID_FILE
 echo "load snapshot $fileName"
-sudo docker exec hnt_iot_helium-miner_1 miner snapshot load $fileName
+sudo docker exec $MC miner snapshot load $fileName

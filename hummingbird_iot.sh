@@ -1,7 +1,9 @@
 #!/bin/bash
+set -x
+source "$(dirname "$0")/const.sh"
+
 VERSION=0.8
 SELF_NAME=`basename "$0"`
-set -x
 
 function retry()
 {
@@ -143,6 +145,10 @@ function cleanSavedSnapshot() {
   find /var/data/saved-snaps/ -type f -printf "%T@ %p\n" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}
 }
 
+function restartMiner() {
+  docker restart ${CONTAINER_MINER} 
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -170,6 +176,8 @@ case $1 in
     run ;;
   stop ) 
     stopHummingbirdMiner ;;
+  restartMiner )
+    restartMiner ;;
   * ) 
     echo "unknown subcommand !"
 esac

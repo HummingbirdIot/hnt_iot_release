@@ -1,28 +1,29 @@
 #!/bin/bash
 source "$(dirname "$0")/util.sh"
+source "$(dirname "$0")/const.sh"
 
-dockerContainer="hnt_iot_helium-miner_1"
-height=`docker exec hnt_iot_helium-miner_1 miner info height | awk -F' ' '{print $2}'`
+MC="$CONTAINER_MINER"
+height=`docker exec ${MC} miner info height | awk -F' ' '{print $2}'`
 fileName="/tmp/snapshot-${height}"
 
 check_miner_exist() {
-  docker ps | grep ${dockerContainer}
+  docker ps | grep ${MC}
   if [ $? -eq 0 ]; then
     return 0
   fi
   echo "not exist"
-  #docker start ${dockerContainer}
+  #docker start ${MC}
   sleep 60
 }
 
 gen_snapshot() {
   echo "genenate snapshot"
-#  docker exec ${dockerContainer} miner repair sync_resume
+#  docker exec ${MC} miner repair sync_resume
   if [ -f "$fileName" ]; then
     echo "generated snapshot: " $fileName
     return 0
   fi
-  docker exec ${dockerContainer} miner snapshot take $fileName
+  docker exec ${MC} miner snapshot take $fileName
 
   sleep 5
   if [ -f "$fileName" ]; then
@@ -35,7 +36,7 @@ gen_snapshot() {
 
 clean_miner() {
   echo "in clean miner"
-  docker stop ${dockerContainer}
+  docker stop ${MC}
   sudo rm -fr /var/data/state_channel.db
   sudo rm -fr /var/data/ledger.db
   sudo rm -fr /var/data/blockchain.db
@@ -43,9 +44,9 @@ clean_miner() {
 
 apply_snapshot() {
   echo "in apply snapshot: " $fileName
-  docker start ${dockerContainer}
+  docker start ${MC}
   sleep 30
-  docker exec ${dockerContainer} miner snapshot load $fileName
+  docker exec ${MC} miner snapshot load $fileName
 }
 
 
@@ -59,5 +60,5 @@ if [ "$1" == "createSnap" ]; then
   apply_snapshot
 else
   clean_miner
-  docker start ${dockerContainer}
+  docker start ${MC}
 fi
