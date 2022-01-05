@@ -1,7 +1,9 @@
 #!/bin/bash
+set -x
+source "$(dirname "$0")/const.sh"
+
 VERSION=0.8
 SELF_NAME=`basename "$0"`
-set -x
 
 function retry()
 {
@@ -117,7 +119,7 @@ OTA_STATUS_FILE="/tmp/hummingbird_ota"
 function checkOriginUpdate() {
   SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)
 
-  git fetch
+  git fetch origin `git rev-parse --abbrev-ref HEAD`
 
   HEADHASH=$(git rev-parse HEAD)
   UPSTREAMHASH=$(git rev-parse @{upstream})
@@ -139,6 +141,14 @@ function checkOriginUpdate() {
  fi
 }
 
+function cleanSavedSnapshot() {
+  find /var/data/saved-snaps/ -type f -printf "%T@ %p\n" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}
+}
+
+function restartMiner() {
+  docker restart ${CONTAINER_MINER} 
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -153,6 +163,7 @@ function run() {
   setupDbus
   startHummingbird
   rm -f ${OTA_STATUS_FILE}
+  cleanSavedSnapshot
 
   # hm-diag check and upgrade
   bash ./hm_diag_upgrade.sh
@@ -165,6 +176,8 @@ case $1 in
     run ;;
   stop ) 
     stopHummingbirdMiner ;;
+  restartMiner )
+    restartMiner ;;
   * ) 
     echo "unknown subcommand !"
 esac
