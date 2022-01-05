@@ -149,6 +149,10 @@ function restartMiner() {
   docker restart ${CONTAINER_MINER} 
 }
 
+function minerLog() {
+  bash ./miner_log.sh "$@"
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -178,6 +182,9 @@ case $1 in
     stopHummingbirdMiner ;;
   restartMiner )
     restartMiner ;;
+  minerLog )
+    minerLog "$2" "$3" "$4" ;;
   * ) 
     echo "unknown subcommand !"
+    exit 1
 esac
