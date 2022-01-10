@@ -179,15 +179,17 @@ function minerLog() {
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
-  tryWaitNetwork
   patchDhcpcd
   patchHiotTimer
+  tryWaitNetwork
   freeDiskPressure
   gitSetup
   checkPublicKeyfile
   checkOriginUpdate
   # unblock rfkill
   rfkill unblock all
+  # WR for dhcpcd warinig
+  sudo systemctl daemon-reload
   updateReleaseVersion
   setupDbus
   startHummingbird
