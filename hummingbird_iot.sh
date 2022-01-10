@@ -62,6 +62,26 @@ function updateReleaseVersion() {
   fi
 }
 
+function patchDhcpcd() {
+  diff ./config/patch/wait.conf /etc/systemd/system/dhcpcd.service.d/wait.conf > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "patching dhcpcd"
+    sudo cp ./config/patch/wait.conf /etc/systemd/system/dhcpcd.service.d/wait.conf
+    sudo systemctl daemon-reload
+    sudo systemctl restart dhcpcd
+  fi
+}
+
+function patchHiotTimer() {
+  diff ./config/patch/hiot.timer /etc/systemd/system/hiot.timer > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "patching hiot timer"
+    sudo cp ./config/patch/hiot.timer /etc/systemd/system/hiot.timer
+    sudo systemctl daemon-reload
+    sudo systemctl restart hiot.timer
+  fi
+}
+
 function setupDbus() {
   should_restart_dbus=false
   diff ./config/com.helium.Miner.conf /etc/dbus-1/system.d/com.helium.Miner.conf >/dev/null 2>&1
@@ -146,7 +166,7 @@ function cleanSavedSnapshot() {
 }
 
 function restartMiner() {
-  docker restart ${CONTAINER_MINER} 
+  docker restart ${CONTAINER_MINER}
 }
 
 function minerLog() {
@@ -156,6 +176,8 @@ function minerLog() {
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
+  patchDhcpcd
+  patchHiotTimer
   tryWaitNetwork
   freeDiskPressure
   gitSetup
@@ -176,15 +198,15 @@ function run() {
 }
 
 case $1 in
-  run | '' ) 
+  run | '' )
     run ;;
-  stop ) 
+  stop )
     stopHummingbirdMiner ;;
   restartMiner )
     restartMiner ;;
   minerLog )
     minerLog "$2" "$3" "$4" ;;
-  * ) 
+  * )
     echo "unknown subcommand !"
     exit 1
 esac
