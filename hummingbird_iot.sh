@@ -179,9 +179,9 @@ function minerLog() {
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
+  tryWaitNetwork
   patchDhcpcd
   patchHiotTimer
-  tryWaitNetwork
   freeDiskPressure
   gitSetup
   checkPublicKeyfile
