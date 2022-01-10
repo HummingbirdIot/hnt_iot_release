@@ -29,7 +29,7 @@ function tryWaitNetwork() {
   tryNum=1
   while [ $tryNum -le 20 ]
   do
-    ping -q -w 1 -c 1  `ip r | grep default | cut -d ' ' -f 3 | head -n 1` > /dev/null
+    ping -q -w 1 -c 1  `ip r | grep default | cut -d ' ' -f 3 | head -n 1` > /dev/null 2>&1
     if [ $? -eq 0 ]; then
       return 0
     fi
@@ -67,6 +67,7 @@ function patchDhcpcd() {
   if [ $? -ne 0 ]; then
     echo "patching dhcpcd"
     sudo cp ./config/patch/wait.conf /etc/systemd/system/dhcpcd.service.d/wait.conf
+    sync
     sudo systemctl daemon-reload
     sudo systemctl restart dhcpcd
   fi
@@ -77,6 +78,7 @@ function patchHiotTimer() {
   if [ $? -ne 0 ]; then
     echo "patching hiot timer"
     sudo cp ./config/patch/hiot.timer /etc/systemd/system/hiot.timer
+    sync
     sudo systemctl daemon-reload
     sudo systemctl restart hiot.timer
   fi
@@ -97,6 +99,7 @@ function setupDbus() {
   fi
   if [ "$should_restart_dbus" = true ]; then
     echo "restart dbus"
+    sync
     sudo systemctl restart dbus
   fi
 }
