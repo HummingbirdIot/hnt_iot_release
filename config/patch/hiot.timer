@@ -1,0 +1,11 @@
+[Unit]
+Description=Reboot hiot
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=3600
+Persistent=true
+Unit=hiot.service
+
+[Install]
+WantedBy=timers.target

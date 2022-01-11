@@ -4,6 +4,8 @@ set -e
 
 NAME=hm-diag
 
+command -v jq > /dev/null || sudo apt-get install jq -y
+
 function now_version() {
   local now_v=`dpkg -s ${NAME} | grep '^Status: deinstall' && echo "uninstalle" \
       || dpkg -s ${NAME} | grep '^Version: ' | cut -d: -f2`
