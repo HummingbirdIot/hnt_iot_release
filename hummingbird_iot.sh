@@ -192,6 +192,13 @@ function minerLog() {
   bash ./miner_log.sh "$@"
 }
 
+function checkStartHook () {
+  # notify user docker restart event
+  if [ -f "./.hook.sh" ]; then
+    bash ./.hook.sh start
+  fi
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -209,6 +216,7 @@ function run() {
   sudo systemctl daemon-reload
   updateReleaseVersion
   setupDbus
+  checkStartHook
   startHummingbird
   rm -f ${OTA_STATUS_FILE}
   cleanSavedSnapshot
