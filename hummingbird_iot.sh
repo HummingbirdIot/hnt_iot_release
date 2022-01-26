@@ -188,10 +188,6 @@ function restartMiner() {
   docker restart ${CONTAINER_MINER}
 }
 
-function minerLog() {
-  bash ./miner_log.sh "$@"
-}
-
 function checkStartHook () {
   # notify user docker restart event
   if [ -f "./.hook.sh" ]; then
@@ -235,8 +231,11 @@ case $1 in
   restartMiner )
     restartMiner ;;
   minerLog )
-    # minerLog <since time> <until time> <grep string>
-    minerLog "$2" "$3" "$4" ;;
+    # miner <grep string> <max lines>
+    bash ./miner_log.sh "miner" "$2" "$3" ;;
+  pktfwdLog )
+    # pktfwd <since time> <until time> <grep string>
+    bash ./miner_log.sh "pktfwd" "$2" "$3" "$4" ;;
   toUpdate )
     echo ">>>state:`toUpdate`" ;;
   * )
