@@ -84,6 +84,15 @@ function patchHiotTimer() {
   fi
 }
 
+function patchAvahi() {
+  diff ./config/patch/avahi-daemon.conf /etc/avahi/avahi-daemon.conf > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "patching avahi-daemon config"
+    sudo cp ./config/patch/avahi-daemon.conf  /etc/avahi/avahi-daemon.conf
+    sudo service avahi-daemon restart
+  fi
+}
+
 function setupDbus() {
   should_restart_dbus=false
   diff ./config/com.helium.Miner.conf /etc/dbus-1/system.d/com.helium.Miner.conf >/dev/null 2>&1
@@ -139,15 +148,20 @@ function stopHummingbirdMiner() {
 
 OTA_STATUS_FILE="/tmp/hummingbird_ota"
 
-function checkOriginUpdate() {
-  SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)
-
+function toUpdate() {
   git fetch origin `git rev-parse --abbrev-ref HEAD`
+  headHash=$(git rev-parse HEAD)
+  upstreamHash=$(git rev-parse @{upstream})
 
-  HEADHASH=$(git rev-parse HEAD)
-  UPSTREAMHASH=$(git rev-parse @{upstream})
+  if [ "$headHash" != "$upstreamHash" ]; then
+    echo "yes"
+  else
+    echo "no"
+  fi
+}
 
-  if [ "$HEADHASH" != "$UPSTREAMHASH" ]; then
+function checkOriginUpdate() {
+  if [ "`toUpdate`" == "yes" ]; then
   # stop docker-compose first
     if [ -f "$OTA_STATUS_FILE" ]; then
       echo "already in ota"
@@ -161,7 +175,9 @@ function checkOriginUpdate() {
       chmod +x ${SELF_NAME}
       exec sudo ./${SELF_NAME}
     fi
- fi
+  else
+    echo "already up to date"
+  fi
 }
 
 function cleanSavedSnapshot() {
@@ -176,11 +192,19 @@ function minerLog() {
   bash ./miner_log.sh "$@"
 }
 
+function checkStartHook () {
+  # notify user docker restart event
+  if [ -f "./.hook.sh" ]; then
+    bash ./.hook.sh start
+  fi
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
   patchDhcpcd
   patchHiotTimer
+  patchAvahi
   tryWaitNetwork
   freeDiskPressure
   gitSetup
@@ -192,6 +216,7 @@ function run() {
   sudo systemctl daemon-reload
   updateReleaseVersion
   setupDbus
+  checkStartHook
   startHummingbird
   rm -f ${OTA_STATUS_FILE}
   cleanSavedSnapshot
@@ -210,7 +235,10 @@ case $1 in
   restartMiner )
     restartMiner ;;
   minerLog )
+    # minerLog <since time> <until time> <grep string>
     minerLog "$2" "$3" "$4" ;;
+  toUpdate )
+    echo ">>>state:`toUpdate`" ;;
   * )
     echo "unknown subcommand !"
     exit 1
