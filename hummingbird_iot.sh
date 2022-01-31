@@ -93,6 +93,15 @@ function patchAvahi() {
   fi
 }
 
+function patchJournald() {
+  diff ./config/patch/journald.conf /etc/systemd/journald.conf > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "patching journald"
+    sudo cp ./config/patch/journald.conf /etc/systemd/journald.conf
+    sudo systemctl restart systemd-journald.service
+  fi
+}
+
 function setupDbus() {
   should_restart_dbus=false
   diff ./config/com.helium.Miner.conf /etc/dbus-1/system.d/com.helium.Miner.conf >/dev/null 2>&1
@@ -201,6 +210,7 @@ function run() {
   patchDhcpcd
   patchHiotTimer
   patchAvahi
+  patchJournald
   tryWaitNetwork
   freeDiskPressure
   gitSetup
