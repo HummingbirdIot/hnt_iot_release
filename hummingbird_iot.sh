@@ -93,6 +93,15 @@ function patchAvahi() {
   fi
 }
 
+function patchJournald() {
+  diff ./config/patch/journald.conf /etc/systemd/journald.conf > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "patching journald"
+    sudo cp ./config/patch/journald.conf /etc/systemd/journald.conf
+    sudo systemctl restart systemd-journald.service
+  fi
+}
+
 function setupDbus() {
   should_restart_dbus=false
   diff ./config/com.helium.Miner.conf /etc/dbus-1/system.d/com.helium.Miner.conf >/dev/null 2>&1
@@ -188,10 +197,6 @@ function restartMiner() {
   docker restart ${CONTAINER_MINER}
 }
 
-function minerLog() {
-  bash ./miner_log.sh "$@"
-}
-
 function checkStartHook () {
   # notify user docker restart event
   if [ -f "./.hook.sh" ]; then
@@ -205,6 +210,7 @@ function run() {
   patchDhcpcd
   patchHiotTimer
   patchAvahi
+  patchJournald
   tryWaitNetwork
   freeDiskPressure
   gitSetup
@@ -235,8 +241,11 @@ case $1 in
   restartMiner )
     restartMiner ;;
   minerLog )
-    # minerLog <since time> <until time> <grep string>
-    minerLog "$2" "$3" "$4" ;;
+    # miner <grep string> <max lines>
+    bash ./miner_log.sh "miner" "$2" "$3" ;;
+  pktfwdLog )
+    # pktfwd <since time> <until time> <grep string>
+    bash ./miner_log.sh "pktfwd" "$2" "$3" "$4" ;;
   toUpdate )
     echo ">>>state:`toUpdate`" ;;
   * )
