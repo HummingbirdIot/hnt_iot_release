@@ -204,6 +204,23 @@ function checkStartHook () {
   fi
 }
 
+function minerStartTime() {
+  local t=`docker inspect ${CONTAINER_MINER} --format='{{.State.StartedAt}}'`
+  if [ -n "${t}" ]; then
+    echo ">>>result:${t}"
+  fi
+}
+
+function pktfwdVersion() {
+  local v=`docker exec ${CONTAINER_PKTFWD} /app/lora_pkt_fwd -h \
+    | grep Version \
+    | cut -d\: -f2 \
+    | sed 's/[ ;]*//g'`
+  if [ -n "${v}" ]; then
+    echo ">>>result:${v}"
+  fi
+}
+
 function run() {
   echo ">>>>> hummingbirdiot start <<<<<<"
   echo ${SELF_NAME}
@@ -248,6 +265,10 @@ case $1 in
     bash ./miner_log.sh "pktfwd" "$2" "$3" "$4" ;;
   toUpdate )
     echo ">>>state:`toUpdate`" ;;
+  pktfwdVersion )
+    pktfwdVersion ;;
+  minerStartTime )
+    minerStartTime ;;
   * )
     echo "unknown subcommand !"
     exit 1
