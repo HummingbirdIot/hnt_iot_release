@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$(dirname "$0")/const.sh"
+
 command -v jq > /dev/null || sudo apt-get install jq -y
 
 function fwdLog(){
@@ -8,7 +10,7 @@ function fwdLog(){
   local until="$2"
   local filter="$3"
 
-  journalctl -o json CONTAINER_NAME=hnt_iot_packet-forwarder_1 \
+  journalctl -o json CONTAINER_NAME=${CONTAINER_PKTFWD} \
     -S "$since" -U "$until" \
     | grep "$filter" \
     | jq -c '{message:.MESSAGE, time: ._SOURCE_REALTIME_TIMESTAMP}'
