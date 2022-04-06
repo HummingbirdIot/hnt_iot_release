@@ -9,7 +9,7 @@ services:
     restart: always
     volumes:
       - '/etc/hw_version:/etc/hw_version'
-      - './reset_lgw_v2.sh:/app/reset_lgw_v2.sh'
+      - './reset_lgw_v2.sh:/app/reset_lgw.sh'
     devices:
       - "/dev/spidev3.0:/dev/spidev0.0"
   helium-miner:
