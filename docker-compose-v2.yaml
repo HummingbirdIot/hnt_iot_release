@@ -62,6 +62,7 @@ services:
       - '/var/lib/bluetooth:/var/lib/bluetooth'
       - '/etc/lsb_release:/etc/lsb_release'
       - '/var/data/public_keys:/var/data/public_keys'
+      - './config/v2/gw_sys.config:/usr/src/gateway_config/_build/prod/rel/gateway_config/releases/0.1.0/sys.config'
 
 volumes:
   miner-storage:
