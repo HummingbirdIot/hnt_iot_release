@@ -129,7 +129,7 @@ function startHummingbird() {
 
   until [[ $n -ge $try ]]
   do
-    docker-compose up -d
+    docker-compose -f docker-compose-v2.yaml up -d
     if [ $? -eq 0 ]; then
       return 0
     else
