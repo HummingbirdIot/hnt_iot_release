@@ -37,11 +37,13 @@ function util.gitSetup()
   end
 end
 
-function util.upstreamUpdate()
+function util.upstreamUpdate(useSudo)
   local branch, err = util.osExecute("git rev-parse --abbrev-ref HEAD")
   if err ~= 0 then return false end
-  print("branch is " .. branch)
-  if os.execute("sudo git fetch origin " .. branch) then
+  local cmd = "git fetch origin " .. branch
+  print("cmd is " .. cmd)
+  if useSudo then cmd = "sudo " .. cmd end
+  if os.execute(cmd) then
     local headHash, err_1 = util.osExecute("git rev-parse HEAD")
     if err_1 ~= 0 then return false end
     local upstreamHash, err_2 = util.osExecute("git rev-parse @{upstream}")
