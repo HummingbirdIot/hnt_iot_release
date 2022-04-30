@@ -1,5 +1,15 @@
 local util = {}
-local file = dofile('./file.lua');
+
+local requireRel
+if arg and arg[0] then
+    package.path = arg[0]:match("(.-)[^\\/]+$") .. "?.lua;" .. package.path
+    requireRel = require
+elseif ... then
+    local d = (...):match("(.-)[^%.]+$")
+    function requireRel(module) return require(d .. module) end
+end
+
+local file = requireRel('./file')
 
 local OTA_STATUS_FILE = "/tmp/hummingbird_ota"
 
