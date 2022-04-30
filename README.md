@@ -1,13 +1,17 @@
 # hnt-iot-software
 
-### How to start
+### Lua Version
+
+**Why Not shell**
+> script not easy to maintain when shell script large then 100 line, so far the main script is around 270. 
+
+##Why Lua
+* lite runtime binary size, no need install large binary(e.g. nodejs) which is more friendly for light hotspots.
+* Unit test friendly
+
+### Self Test
 
 ```bash
-./hummingbird_iot.sh
+busted lua/test/test.lua
 ```
-
-### Speed up github access
-
-```bash
-git config url."https://github.com.cnpmjs.org/".insteadOf "https://github.com/"
-```
+### To Add
