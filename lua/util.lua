@@ -1,4 +1,18 @@
 local util = {}
+local file = dofile('./file.lua');
+
+local OTA_STATUS_FILE = "/tmp/hummingbird_ota"
+
+function util.runAllcmd(cmds)
+---@diagnostic disable-next-line: unused-local
+  for _k, cmd in pairs(cmds) do
+    if not os.execute(cmd) then
+      print("fail to exec " .. cmd)
+      return false
+    end
+  end
+  return true
+end
 
 function util.trim(s)
   return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
@@ -58,6 +72,14 @@ function util.upstreamUpdate(useSudo)
     print(headHash .. " " .. upstreamHash)
     return headHash ~= upstreamHash
   end
+end
+
+function util.syncToUpstream(useSudo, cleanFunc)
+  if util.upstreamUpdate(useSudo) and not file.exists(OTA_STATUS_FILE) then
+   file.write(OTA_STATUS_FILE, os.date(), "w")
+
+  end
+  return true
 end
 
 return util
