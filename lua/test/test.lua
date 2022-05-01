@@ -32,6 +32,10 @@ describe('Busted unit testing framework', function()
       assert.truthy(succuess_1)
       assert.falsy(util.upstreamUpdate(false))
       assert.truthy(util.tryWaitNetwork(1))
+
+      local _tempFile = os.tmpname();
+      assert.truthy(util.runAllcmd({"touch " .. _tempFile, "ls /tmp", "rm -f " .._tempFile}))
+      assert.falsy(util.runAllcmd({"notouch" .. _tempFile, "ls /tmp", "rm -f " .._tempFile}))
     end)
   end)
 end)

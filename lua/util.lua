@@ -60,13 +60,7 @@ function util.gitSetup()
     "git config user.email 'hummingbirdiot@example.com'",
     "git config user.name 'hummingbirdiot'",
   }
-
-  for _k, cmd in pairs(cmds) do
-    if not os.execute(cmd) then
-      print("fail to exec " .. cmd)
-      break
-    end
-  end
+  return util.runAllcmd(cmds)
 end
 
 function util.upstreamUpdate(useSudo)

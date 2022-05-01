@@ -1,6 +1,16 @@
 local hummingbird_iot = {}
 
-local file = require("file")
+local file = require("lua/file")
+
+function getDockerComposeConfig()
+    local modelFile = "/proc/device-tree/model"
+    if file.exists(modelFile) then
+        local content = file.read(modelFile, "*a")
+        local start = string.find(content, 'Raspberry Pi')
+        if start then return "docker-compose.yaml" end
+    end
+    return "docker-compose-v2.yaml"
+end
 
 function GetCurrentLuaFile()
     local source = debug.getinfo(2, "S").source
@@ -46,6 +56,7 @@ function hummingbird_iot:Run()
   hummingbird_iot:PatchServices();
 end
 
-if #arg == 0 then
-  hummingbird_iot:Run()
-end
+print(getDockerComposeConfig())
+--if #arg == 0 then
+--  hummingbird_iot:Run()
+--end
