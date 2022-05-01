@@ -20,7 +20,10 @@ describe('Busted unit testing framework', function()
     end)
 
     describe('util basic test', function()
-      local util = require('lua/util')
+      local PWD = os.getenv("PWD")
+      if PWD then package.path = PWD .. "/lua/?.lua;" .. package.path end
+
+      local util = require('util')
 
       assert.same("hello", util.trim("hello  "))
       local _output, succuess = util.shell("nols /tmp")

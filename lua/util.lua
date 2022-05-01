@@ -1,15 +1,18 @@
 local util = {}
-
 local requireRel
-if arg and arg[0] then
-    package.path = arg[0]:match("(.-)[^\\/]+$") .. "?.lua;" .. package.path
-    requireRel = require
-elseif ... then
-    local d = (...):match("(.-)[^%.]+$")
-    function requireRel(module) return require(d .. module) end
+
+--local selfPath = debug.getinfo(1,"S").source:sub(2)
+if ... then
+  local d = (...):match("(.-)[^%\\/]+$")
+  function requireRel(module) return require(d .. module) end
+elseif arg and arg[0] then
+  package.path = arg[0]:match("(.-)[^\\/]+$") .. "?.lua;" .. package.path
+  requireRel = require
 end
 
-local file = requireRel('./file')
+local file = requireRel('file')
+
+assert(file.exists)
 
 local OTA_STATUS_FILE = "/tmp/hummingbird_ota"
 
