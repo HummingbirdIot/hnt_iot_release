@@ -1,8 +1,9 @@
-local hummingbird_iot = {}
+local HIoT = {}
 
 local file = require("lua/file")
+local DockerComposeBin = "docker-compose"
 
-function getDockerComposeConfig()
+function HIoT.GetDockerComposeConfig()
     local modelFile = "/proc/device-tree/model"
     if file.exists(modelFile) then
         local content = file.read(modelFile, "*a")
@@ -12,7 +13,16 @@ function getDockerComposeConfig()
     return "docker-compose-v2.yaml"
 end
 
-function GetCurrentLuaFile()
+function HIoT.StopDockerCompose()
+    local config = HIoT.GetCurrentLuaFile()
+    print("Stop hummingbird_iot docker compose with config " .. config)
+    local cmd  = DockerComposeBin .. " -f " .. config .. " down"
+    if not os.execute(cmd) then
+        print("fail to stop docker with " .. cmd)
+    end
+end
+
+function HIoT.GetCurrentLuaFile()
     local source = debug.getinfo(2, "S").source
     if source:sub(1,1) == "@" then
         return source:sub(2)
@@ -35,13 +45,13 @@ function PatchTargetFile(Src, Dest)
     return false
 end
 
-function hummingbird_iot:PatchServices()
+function HIoT:PatchServices()
     local ServicesToPatch = {
         { name = "test2", src ="/tmp/test3", dest = "/tmp/test4" },
         { name = "test1", src ="/tmp/test1", dest = "/tmp/test2" },
     }
 
-    for _k,v in pairs(ServicesToPatch) do
+    for _,v in pairs(ServicesToPatch) do
         print("check for " .. v.name)
         if PatchTargetFile(v.src, v.dest) then
             print("restart service")
@@ -49,14 +59,15 @@ function hummingbird_iot:PatchServices()
     end
 end
 
-function hummingbird_iot:Run()
+function HIoT:Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
 
-  hummingbird_iot:PatchServices();
+  HIoT:PatchServices();
 end
 
-print(getDockerComposeConfig())
 --if #arg == 0 then
 --  hummingbird_iot:Run()
 --end
+
+return HIoT
