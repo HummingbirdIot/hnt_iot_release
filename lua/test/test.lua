@@ -47,12 +47,13 @@ describe(
             local util = require("util")
 
             assert.same("hello", util.trim("hello  "))
-            local _output, succuess = util.shell("nols /tmp")
-            assert.falsy(succuess)
+            --local _output, succuess = util.shell("nols /tmp")
+            --assert.falsy(succuess)
             local _output1, succuess_1 = util.shell("ls /tmp")
             assert.truthy(succuess_1)
             assert.falsy(util.upstreamUpdate(false))
-            assert.truthy(util.tryWaitNetwork(1))
+            print(_VERSION)
+            assert.truthy(util.tryWaitNetwork(5))
 
             local _tempFile = os.tmpname()
             assert.truthy(util.runAllcmd({"touch " .. _tempFile, "ls /tmp", "rm -f " .. _tempFile}))

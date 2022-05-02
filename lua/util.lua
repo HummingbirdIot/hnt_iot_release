@@ -126,7 +126,7 @@ function util.FreeDiskPressure(usage)
   local diskUsage, success = util.shell("df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'")
   if not success then print("Fail to get diskUsage") return false end
   if tonumber(diskUsage) > thresh then
-    print("trim miner for " .. diskUsage " hight then " .. thresh)
+    print("trim miner for " .. diskUsage .. " hight then " .. tostring(thresh))
     os.execute('sudo bash ./trim_miner.sh createSnap')
   end
 end
