@@ -49,7 +49,7 @@ function PruneDockerImages()
 end
 
 function StartHummingbird(tryPrune, retryNum)
-  print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) "retryNum num: " .. tostring(retryNum))
+  print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) .. "retryNum num: " .. tostring(retryNum))
   local tryNum = retryNum or 30
   while (tryNum > 0) do
     if StartDockerCompose() then return true end
