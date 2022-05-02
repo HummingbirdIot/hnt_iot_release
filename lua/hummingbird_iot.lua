@@ -155,7 +155,8 @@ function CheckPublicKeyFile()
 end
 
 function CleanSaveSnapshot()
-  local cmd = os.execute("find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}")
+  local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
+  print(cmd)
   if os.execute(cmd) ~= 0 then
     print("!!! Failed to clean snapshot with " .. cmd)
   end
