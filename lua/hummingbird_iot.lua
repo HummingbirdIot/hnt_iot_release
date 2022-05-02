@@ -49,7 +49,7 @@ function PruneDockerImages()
 end
 
 function StartHummingbird(tryPrune, retryNum)
-  print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) .. "retryNum num: " .. tostring(retryNum))
+  print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) .. " retryNum num: " .. tostring(retryNum))
   local tryNum = retryNum or 30
   while (tryNum > 0) do
     if StartDockerCompose() then return true end
@@ -79,7 +79,7 @@ end
 
 function PatchTargetFile(Src, Dest)
   local cmd = "diff " .. Src .. " " .. Dest
-  if file.exists(Src) and file.exists(Dest) then
+  if file.exists(Src) then
     print(cmd)
     if os.execute(cmd) ~= 0 then
       return os.execute("sudo cp " .. Src .. " " .. Dest)
