@@ -116,7 +116,7 @@ function util.syncToUpstream(useSudo, cleanFunc)
         "sudo git merge '${u}'",
         "sudo chmod +x hummingbird_iot.sh"
       })
-    if not os.execute("sudo ./hummingbird_iot.sh") then print("Fail to start hiot") end
+    if not os.execute("sudo ./hummingbird_iot.sh lua") then print("Fail to start hiot") end
     file.remove(OTA_STATUS_FILE)
     os.exit(0)
   end

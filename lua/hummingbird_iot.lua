@@ -21,7 +21,7 @@ function GetDockerComposeConfig()
 end
 
 function StopDockerCompose()
-  local config = GetCurrentLuaFile()
+  local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
   if os.execute(cmd) then return true
@@ -32,7 +32,7 @@ function StopDockerCompose()
 end
 
 function StartDockerCompose()
-  local config = GetCurrentLuaFile()
+  local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
   if os.execute(cmd) then return true
