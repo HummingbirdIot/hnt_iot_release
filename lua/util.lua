@@ -113,7 +113,7 @@ function util.syncToUpstream(useSudo, cleanFunc)
     cleanFunc()
     util.runAllcmd({
         "sudo git stash",
-        "sudo git merge '${u}'",
+        "sudo git merge '@{u}'",
         "sudo chmod +x hummingbird_iot.sh"
       })
     if not os.execute("sudo ./hummingbird_iot.sh lua") then print("Fail to start hiot") end
