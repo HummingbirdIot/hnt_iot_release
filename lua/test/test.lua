@@ -64,7 +64,7 @@ describe(
           "hiot basic test",
           function()
             local hiot = require("hummingbird_iot")
-            assert.same("docker-compose-v2.yaml", hiot.GetDockerComposeConfig())
+            assert.truthy(hiot.Test())
           end
         )
       end

@@ -1,9 +1,14 @@
 local HIoT = {}
 
 local file = require("lua/file")
+local util = require("lua/util")
 local DockerComposeBin = "docker-compose"
 
-function HIoT.GetDockerComposeConfig()
+function Sleep(n)
+  os.execute("sleep " .. tonumber(n))
+end
+
+function GetDockerComposeConfig()
   local modelFile = "/proc/device-tree/model"
   if file.exists(modelFile) then
     local content = file.read(modelFile, "*a")
@@ -15,16 +20,55 @@ function HIoT.GetDockerComposeConfig()
   return "docker-compose-v2.yaml"
 end
 
-function HIoT.StopDockerCompose()
-  local config = HIoT.GetCurrentLuaFile()
+function StopDockerCompose()
+  local config = GetCurrentLuaFile()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
-  if not os.execute(cmd) then
+  if os.execute(cmd) then return true
+  else
     print("fail to stop docker with " .. cmd)
   end
+  return false
 end
 
-function HIoT.GetCurrentLuaFile()
+function StartDockerCompose()
+  local config = GetCurrentLuaFile()
+  print("Stop hummingbird_iot docker compose with config " .. config)
+  local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
+  if os.execute(cmd) then return true
+  else
+    print("fail to start docker with " .. cmd)
+  end
+  return false
+end
+
+function PruneDockerImages()
+  StopDockerCompose()
+  local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
+  if not os.execute(cmd) then print("PruneDockerImages failed") end
+end
+
+function StartHummingbird(tryPrune, retryNum)
+  print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) "retryNum num: " .. tostring(retryNum))
+  local tryNum = retryNum or 30
+  while (tryNum > 0) do
+    if StartDockerCompose() then return true end
+    --if os.execute("ping -q -w 1 -c 1" .. result) then break end
+    print("retry times: " .. tostring(tryNum))
+    tryNum = tryNum - 1
+    Sleep(1)
+  end
+
+  if not util.destIsReachable('8.8.8.8') then return false end
+  print("Networking check ok ...")
+  if not tryPrune then return false end
+  StopDockerCompose()
+  -- Try Prune the docker images
+  PruneDockerImages()
+  return StartHummingbird(false, 3)
+end
+
+function GetCurrentLuaFile()
   local source = debug.getinfo(2, "S").source
   if source:sub(1, 1) == "@" then
     return source:sub(2)
@@ -35,37 +79,78 @@ end
 
 function PatchTargetFile(Src, Dest)
   local cmd = "diff " .. Src .. " " .. Dest
-  if file.exists(Src) then
+  if file.exists(Src) and file.exists(Dest) then
     print(cmd)
     if os.execute(cmd) ~= 0 then
       file.copy(Src, Dest)
       return true
     end
   else
-    print(Src .. "Not Exist just ingore")
+    print("!!! error:" .. Src .. " or " .. Dest .. "Not Exist just ingore")
   end
   return false
 end
 
-function HIoT:PatchServices()
+function PatchServices()
   local ServicesToPatch = {
-    {name = "test2", src = "/tmp/test3", dest = "/tmp/test4"},
-    {name = "test1", src = "/tmp/test1", dest = "/tmp/test2"}
+    {
+      name = "dhcpcd",
+      src = "config/patch/wait.conf",
+      dest = "/etc/systemd/system/dhcpcd.service.d/wait.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart dhcpcd"
+    },
+    {
+      name = "hiotTimer",
+      src = "config/patch/hiot.timer",
+      dest = "/etc/systemd/system/hiot.timer",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
+    },
+    {
+      name = "avahi",
+      src = "config/patch/avahi-daemon.conf",
+      dest = "/etc/avahi/avahi-daemon.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart avahi-daemon"
+    },
+    {
+      name = "journald",
+      src = "config/patch/journald.conf",
+      dest = "/etc/systemd/journald.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart systemd-journald.service"
+    },
+    {
+      name = "dbus-miner",
+      src = "config/com.helium.Miner.conf",
+      dest = "/etc/dbus-1/system.d/com.helium.Miner.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
+    },
+    {
+      name = "dbus-config",
+      src = "config/com.helium.Config.conf",
+      dest = "config/com.helium.Config.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
+    }
   }
 
   for _, v in pairs(ServicesToPatch) do
     print("check for " .. v.name)
-    if PatchTargetFile(v.src, v.dest) then
-      print("restart service")
+    if PatchTargetFile(v.src, v.dest) and v.action then
+      if not os.execute(v.action) then print("failed do post action " .. v.action .. " for " .. v.name) end
     end
   end
 end
 
-function HIoT:Run()
+function HIoT.Test()
+  local fileId = GetCurrentLuaFile()
+  assert(file and util)
+  assert(string.find(fileId, "hummingbird_iot.lua") ~= nil)
+  assert(GetDockerComposeConfig() == "docker-compose-v2.yaml")
+  return true
+end
+
+function HIoT.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
-
-  HIoT:PatchServices()
+  PatchServices()
 end
 
 --if #arg == 0 then
