@@ -25,7 +25,7 @@ end
 function util.runAllcmd(cmds)
   ---@diagnostic disable-next-line: unused-local
   for _k, cmd in pairs(cmds) do
-    if not os.execute(cmd) then
+    if os.execute(cmd) ~= 0 then
       print("fail to exec " .. cmd)
       return false
     end
@@ -50,10 +50,7 @@ function util.tryWaitNetwork(timeout)
   if success then
     print("GW " .. gw)
     while (tryNum > 0) do
-      if os.execute("ping -q -t 1 -c 1 " .. gw) then
-        return true
-      end
-      --if os.execute("ping -q -w 1 -c 1" .. result) then break end
+      if util.destIsReachable(gw) then return true end
       print("retry times: " .. tostring(tryNum))
       tryNum = tryNum - 1
     end
@@ -69,7 +66,7 @@ function util.destIsReachable(dest)
   else
     cmd = "ping -q -w 1 -c 1 " .. dest
   end
-  return os.execute(cmd)
+  return os.execute(cmd) == 0
 end
 
 function util.gitSetup()
@@ -90,7 +87,7 @@ function util.upstreamUpdate(useSudo)
   if useSudo then
     cmd = "sudo " .. cmd
   end
-  if os.execute(cmd) then
+  if os.execute(cmd) == 0 then
     local headHash, success_1 = util.shell("git rev-parse HEAD")
     if not success_1 then
       return false
@@ -116,11 +113,22 @@ function util.syncToUpstream(useSudo, cleanFunc)
         "sudo git merge '@{u}'",
         "sudo chmod +x hummingbird_iot.sh"
       })
-    if not os.execute("sudo ./hummingbird_iot.sh lua") then print("Fail to start hiot") end
     file.remove(OTA_STATUS_FILE)
+    if not os.execute("sudo ./hummingbird_iot.sh lua")  ~= 0 then print("Fail to start hiot") end
     os.exit(0)
   end
   return true
+end
+
+function util.FreeDiskPressure(usage)
+  local thresh = usage or 80
+  print("In FreeDiskPressure")
+  local diskUsage, success = util.shell("df -h |grep '/dev/root' | awk '{print $5}' | tr -dc '0-9'")
+  if not success then print("Fail to get diskUsage") return false end
+  if tonumber(diskUsage) > thresh then
+    print("trim miner for " .. diskUsage " hight then " .. thresh)
+    os.execute('sudo bash ./trim_miner.sh createSnap')
+  end
 end
 
 return util

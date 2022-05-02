@@ -24,7 +24,7 @@ function StopDockerCompose()
   local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
-  if os.execute(cmd) then return true
+  if os.execute(cmd) == 0 then return true
   else
     print("fail to stop docker with " .. cmd)
   end
@@ -33,9 +33,9 @@ end
 
 function StartDockerCompose()
   local config = GetDockerComposeConfig()
-  print("Stop hummingbird_iot docker compose with config " .. config)
+  print("Start hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
-  if os.execute(cmd) then return true
+  if os.execute(cmd) == 0 then return true
   else
     print("fail to start docker with " .. cmd)
   end
@@ -45,7 +45,7 @@ end
 function PruneDockerImages()
   StopDockerCompose()
   local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
-  if not os.execute(cmd) then print("PruneDockerImages failed") end
+  if os.execute(cmd) ~= 0 then print("PruneDockerImages failed") end
 end
 
 function StartHummingbird(tryPrune, retryNum)
@@ -53,7 +53,6 @@ function StartHummingbird(tryPrune, retryNum)
   local tryNum = retryNum or 30
   while (tryNum > 0) do
     if StartDockerCompose() then return true end
-    --if os.execute("ping -q -w 1 -c 1" .. result) then break end
     print("retry times: " .. tostring(tryNum))
     tryNum = tryNum - 1
     Sleep(1)
@@ -138,7 +137,7 @@ function PatchServices()
   for _, v in pairs(ServicesToPatch) do
     print("check for " .. v.name)
     if PatchTargetFile(v.src, v.dest) and v.action then
-      if not os.execute(v.action) then print("failed do post action " .. v.action .. " for " .. v.name) end
+      if os.execute(v.action) ~= 0 then print("failed do post action " .. v.action .. " for " .. v.name) end
     end
   end
 end
@@ -151,20 +150,24 @@ function HIoT.Test()
   return true
 end
 
-function FreeDiskPressure()
-  print("In FreeDiskPressure")
-end
-
 function CheckPublicKeyFile()
   os.execute("sudo mkdir -p /var/data && sudo touch /var/data/public_keys")
+end
+
+function CleanSaveSnapshot()
+  local cmd = os.execute("find /var/data/saved-snaps/ -type f -printf \"%T@ %p\n\" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}")
+  if os.execute(cmd) ~= 0 then
+    print("!!! Failed to clean snapshot")
+  end
 end
 
 function HIoT.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
+  CleanSaveSnapshot()
   PatchServices()
   util.tryWaitNetwork()
-  FreeDiskPressure()
+  util.FreeDiskPressure()
   util.gitSetup()
   CheckPublicKeyFile()
   util.syncToUpstream(true, StopDockerCompose)
