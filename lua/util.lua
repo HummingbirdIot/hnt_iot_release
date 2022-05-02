@@ -12,7 +12,7 @@ elseif arg and arg[0] then
   requireRel = require
 end
 
-local file = requireRel("file")
+local file = require("lua/file")
 
 assert(file.exists)
 
@@ -108,7 +108,17 @@ end
 
 function util.syncToUpstream(useSudo, cleanFunc)
   if util.upstreamUpdate(useSudo) and not file.exists(OTA_STATUS_FILE) then
+    print("Do self update")
     file.write(OTA_STATUS_FILE, os.date(), "w")
+    cleanFunc()
+    util.runAllcmd({
+        "sudo git stash",
+        "sudo git merge '${u}'",
+        "sudo chmod +x hummingbird_iot.sh"
+      })
+    if not os.execute("sudo ./hummingbird_iot.sh") then print("Fail to start hiot") end
+    file.remove(OTA_STATUS_FILE)
+    os.exit(0)
   end
   return true
 end

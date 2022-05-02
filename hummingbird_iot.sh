@@ -253,6 +253,8 @@ function run() {
 case $1 in
   run | '' )
     run ;;
+  lua )
+    lua ./lua/hummingbird_iot.lua run ;;
   stop )
     stopHummingbirdMiner ;;
   restartMiner )

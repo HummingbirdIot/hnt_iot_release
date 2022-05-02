@@ -82,8 +82,7 @@ function PatchTargetFile(Src, Dest)
   if file.exists(Src) and file.exists(Dest) then
     print(cmd)
     if os.execute(cmd) ~= 0 then
-      file.copy(Src, Dest)
-      return true
+      return os.execute("sudo cp " .. Src .. " " .. Dest)
     end
   else
     print("!!! error:" .. Src .. " or " .. Dest .. "Not Exist just ingore")
@@ -128,6 +127,11 @@ function PatchServices()
       src = "config/com.helium.Config.conf",
       dest = "config/com.helium.Config.conf",
       action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
+    },
+    {
+      name = "update release version",
+      src = "config/lsb_release",
+      dest = "/etc/lsb_release"
     }
   }
 
@@ -147,14 +151,29 @@ function HIoT.Test()
   return true
 end
 
+function FreeDiskPressure()
+  print("In FreeDiskPressure")
+end
+
+function CheckPublicKeyFile()
+  os.execute("sudo mkdir -p /var/data && sudo touch /var/data/public_keys")
+end
+
 function HIoT.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
   PatchServices()
+  util.tryWaitNetwork()
+  FreeDiskPressure()
+  util.gitSetup()
+  CheckPublicKeyFile()
+  util.syncToUpstream(true, StopDockerCompose)
+  os.execute('sudo rfkill unblock all')
+  StartHummingbird(true)
 end
 
---if #arg == 0 then
---  hummingbird_iot:Run()
---end
-
-return HIoT
+if arg[1] == "run" then
+  HIoT.Run()
+else
+  return HIoT
+end
