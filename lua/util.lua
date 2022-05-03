@@ -114,7 +114,7 @@ function util.syncToUpstream(useSudo, cleanFunc)
         "sudo chmod +x hummingbird_iot.sh"
       })
     file.remove(OTA_STATUS_FILE)
-    if not os.execute("sudo ./hummingbird_iot.sh lua")  ~= 0 then print("Fail to start hiot") end
+    if not os.execute("sudo ./hummingbird_iot.sh lua") then print("Fail to start hiot") end
     os.exit(0)
   end
   return true
