@@ -41,8 +41,8 @@ describe(
           end
         )
 
-        describe(
-          "util basic test",
+        it(
+          "util basic test should be ok",
           function()
             local util = require("util")
 
@@ -61,8 +61,17 @@ describe(
           end
         )
 
-        describe(
-          "hiot basic test",
+        it(
+          "util network check test should ok",
+          function()
+            local util = require("util")
+            assert.truthy(util.destIsReachable("8.8.8.8"))
+            assert.falsy(util.destIsReachable("8.81.81.8"))
+          end
+        )
+
+        it(
+          "hiot basic test should ok",
           function()
             local hiot = require("hummingbird_iot")
             assert.truthy(hiot.Test())

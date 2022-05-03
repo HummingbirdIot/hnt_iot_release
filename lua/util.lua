@@ -18,7 +18,7 @@ assert(file.exists)
 
 local OTA_STATUS_FILE = "/tmp/hummingbird_ota"
 
-function IsDarwin()
+local function IsDarwin()
   return io.popen("uname -s", "r"):read("*l") == "Darwin"
 end
 

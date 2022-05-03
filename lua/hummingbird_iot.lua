@@ -4,11 +4,11 @@ local file = require("lua/file")
 local util = require("lua/util")
 local DockerComposeBin = "docker-compose"
 
-function Sleep(n)
+local function Sleep(n)
   os.execute("sleep " .. tonumber(n))
 end
 
-function GetDockerComposeConfig()
+local function GetDockerComposeConfig()
   local modelFile = "/proc/device-tree/model"
   if file.exists(modelFile) then
     local content = file.read(modelFile, "*a")
@@ -20,7 +20,7 @@ function GetDockerComposeConfig()
   return "docker-compose-v2.yaml"
 end
 
-function StopDockerCompose()
+local function StopDockerCompose()
   local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
@@ -31,7 +31,7 @@ function StopDockerCompose()
   return false
 end
 
-function StartDockerCompose()
+local function StartDockerCompose()
   local config = GetDockerComposeConfig()
   print("Start hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
@@ -42,13 +42,13 @@ function StartDockerCompose()
   return false
 end
 
-function PruneDockerImages()
+function HIoT.PruneDockerImages()
   StopDockerCompose()
   local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
   if not os.execute(cmd) then print("PruneDockerImages failed") end
 end
 
-function StartHummingbird(tryPrune, retryNum)
+local function StartHummingbird(tryPrune, retryNum)
   print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) .. " retryNum num: " .. tostring(retryNum))
   local tryNum = retryNum or 30
   while (tryNum > 0) do
@@ -63,11 +63,11 @@ function StartHummingbird(tryPrune, retryNum)
   if not tryPrune then return false end
   StopDockerCompose()
   -- Try Prune the docker images
-  PruneDockerImages()
+  HIoT.PruneDockerImages()
   return StartHummingbird(false, 3)
 end
 
-function GetCurrentLuaFile()
+local function GetCurrentLuaFile()
   local source = debug.getinfo(2, "S").source
   if source:sub(1, 1) == "@" then
     return source:sub(2)
@@ -76,7 +76,7 @@ function GetCurrentLuaFile()
   end
 end
 
-function PatchTargetFile(Src, Dest)
+local function PatchTargetFile(Src, Dest)
   local cmd = "diff " .. Src .. " " .. Dest
   if file.exists(Src) then
     print(cmd)
@@ -89,7 +89,7 @@ function PatchTargetFile(Src, Dest)
   return false
 end
 
-function PatchServices()
+local function PatchServices()
   local ServicesToPatch = {
     {
       name = "dhcpcd",
@@ -150,12 +150,13 @@ function HIoT.Test()
   return true
 end
 
-function CheckPublicKeyFile()
+local function CheckPublicKeyFile()
   os.execute("sudo mkdir -p /var/data && sudo touch /var/data/public_keys")
 end
 
-function CleanSaveSnapshot()
-  local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
+local function CleanSaveSnapshot()
+  local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | "
+  .. "sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
   if not os.execute(cmd) then
     print("!!! Failed to clean snapshot with " .. cmd)
   end
