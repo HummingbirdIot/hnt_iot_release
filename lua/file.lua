@@ -24,11 +24,11 @@ local file = {}
 -- - `path` is a string.
 --
 function file.exists(path)
-  local file = io.open(path, 'rb')
-  if file then
-    file:close()
+  local f = io.open(path, 'rb')
+  if f then
+    f:close()
   end
-  return file ~= nil
+  return f ~= nil
 end
 
 -- ### file.read
@@ -40,12 +40,12 @@ end
 --
 function file.read(path, mode)
   mode = mode or '*a'
-  local file, err = io.open(path, 'rb')
+  local f, err = io.open(path, 'rb')
   if err then
     error(err)
   end
-  local content = file:read(mode)
-  file:close()
+  local content = f:read(mode)
+  f:close()
   return content
 end
 
@@ -59,12 +59,12 @@ end
 --
 function file.write(path, content, mode)
   mode = mode or 'w'
-  local file, err = io.open(path, mode)
+  local f, err = io.open(path, mode)
   if err then
     error(err)
   end
-  file:write(content)
-  file:close()
+  f:write(content)
+  f:close()
 end
 
 -- ### file.copy

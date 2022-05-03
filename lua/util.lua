@@ -1,16 +1,17 @@
 local util = {}
-local requireRel
-
---local selfPath = debug.getinfo(1,"S").source:sub(2)
-if ... then
-  local d = (...):match("(.-)[^%\\/]+$")
-  function requireRel(module)
-    return require(d .. module)
-  end
-elseif arg and arg[0] then
-  package.path = arg[0]:match("(.-)[^\\/]+$") .. "?.lua;" .. package.path
-  requireRel = require
-end
+--for relative module load
+--local requireRel
+--
+----local selfPath = debug.getinfo(1,"S").source:sub(2)
+--if ... then
+--  local d = (...):match("(.-)[^%\\/]+$")
+--  function requireRel(module)
+--    return require(d .. module)
+--  end
+--elseif arg and arg[0] then
+--  package.path = arg[0]:match("(.-)[^\\/]+$") .. "?.lua;" .. package.path
+--  requireRel = require
+--end
 
 local file = require("lua/file")
 
@@ -23,8 +24,7 @@ local function IsDarwin()
 end
 
 function util.runAllcmd(cmds)
-  ---@diagnostic disable-next-line: unused-local
-  for _k, cmd in pairs(cmds) do
+  for _, cmd in pairs(cmds) do
     if not os.execute(cmd) then
       print("fail to exec " .. cmd)
       return false
@@ -62,9 +62,9 @@ end
 function util.destIsReachable(dest)
   local cmd
   if (IsDarwin()) then
-    cmd = "ping -q -t 1 -c 1 " .. dest
+    cmd = "ping -q -t 5 -c 1 " .. dest
   else
-    cmd = "ping -q -w 1 -c 1 " .. dest
+    cmd = "ping -q -w 5 -c 1 " .. dest
   end
   return os.execute(cmd)
 end
