@@ -124,8 +124,8 @@ local function PatchServices()
     {
       name = "dbus-config",
       src = "config/com.helium.Config.conf",
-      dest = "config/com.helium.Config.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
+      dest = "/etc/dbus-1/system.d/com.helium.Config.conf",
+      action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
     },
     {
       name = "update release version",
@@ -154,7 +154,7 @@ local function CheckPublicKeyFile()
   os.execute("sudo mkdir -p /var/data && sudo touch /var/data/public_keys")
 end
 
-local function CleanSaveSnapshot()
+function HIoT.CleanSaveSnapshot()
   local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | "
   .. "sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
   if not os.execute(cmd) then
@@ -162,17 +162,23 @@ local function CleanSaveSnapshot()
   end
 end
 
+local function EnableBlueTooth()
+  if not os.execute('sudo rfkill unblock all') then
+    print("Fail to enable bluetooth")
+  end
+end
+
 function HIoT.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
-  CleanSaveSnapshot()
+  HIoT.CleanSaveSnapshot()
   PatchServices()
   util.tryWaitNetwork()
   util.FreeDiskPressure()
   util.gitSetup()
   CheckPublicKeyFile()
+  EnableBlueTooth()
   util.syncToUpstream(true, StopDockerCompose)
-  os.execute('sudo rfkill unblock all')
   StartHummingbird(true)
 end
 
