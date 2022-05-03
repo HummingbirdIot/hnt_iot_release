@@ -25,7 +25,7 @@ end
 function util.runAllcmd(cmds)
   ---@diagnostic disable-next-line: unused-local
   for _k, cmd in pairs(cmds) do
-    if os.execute(cmd) ~= 0 then
+    if not os.execute(cmd) then
       print("fail to exec " .. cmd)
       return false
     end
@@ -66,7 +66,7 @@ function util.destIsReachable(dest)
   else
     cmd = "ping -q -w 1 -c 1 " .. dest
   end
-  return os.execute(cmd) == 0
+  return os.execute(cmd)
 end
 
 function util.gitSetup()
@@ -87,7 +87,7 @@ function util.upstreamUpdate(useSudo)
   if useSudo then
     cmd = "sudo " .. cmd
   end
-  if os.execute(cmd) == 0 then
+  if os.execute(cmd) then
     local headHash, success_1 = util.shell("git rev-parse HEAD")
     if not success_1 then
       return false

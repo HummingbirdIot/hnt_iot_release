@@ -48,7 +48,7 @@ describe(
 
             assert.same("hello", util.trim("hello  "))
             --local _output, succuess = util.shell("nols /tmp")
-            --assert.falsy(succuess)
+            assert.falsy(succuess)
             local _output1, succuess_1 = util.shell("ls /tmp")
             assert.truthy(succuess_1)
             assert.falsy(util.upstreamUpdate(false))

@@ -249,12 +249,12 @@ function run() {
 
   exit 0
 }
-
+command -v lua5.3 > /dev/null || apt install lua5.3 -y
 case $1 in
   run | '' )
     run ;;
   lua )
-    lua ./lua/hummingbird_iot.lua run ;;
+    lua5.3 ./lua/hummingbird_iot.lua run ;;
   stop )
     stopHummingbirdMiner ;;
   restartMiner )

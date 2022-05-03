@@ -24,7 +24,7 @@ function StopDockerCompose()
   local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
-  if os.execute(cmd) == 0 then return true
+  if os.execute(cmd) then return true
   else
     print("fail to stop docker with " .. cmd)
   end
@@ -35,7 +35,7 @@ function StartDockerCompose()
   local config = GetDockerComposeConfig()
   print("Start hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
-  if os.execute(cmd) == 0 then return true
+  if os.execute(cmd) then return true
   else
     print("fail to start docker with " .. cmd)
   end
@@ -45,7 +45,7 @@ end
 function PruneDockerImages()
   StopDockerCompose()
   local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
-  if os.execute(cmd) ~= 0 then print("PruneDockerImages failed") end
+  if not os.execute(cmd) then print("PruneDockerImages failed") end
 end
 
 function StartHummingbird(tryPrune, retryNum)
@@ -80,7 +80,7 @@ function PatchTargetFile(Src, Dest)
   local cmd = "diff " .. Src .. " " .. Dest
   if file.exists(Src) then
     print(cmd)
-    if os.execute(cmd) ~= 0 then
+    if not os.execute(cmd) then
       return os.execute("sudo cp " .. Src .. " " .. Dest)
     end
   else
@@ -137,7 +137,7 @@ function PatchServices()
   for _, v in pairs(ServicesToPatch) do
     print("check for " .. v.name)
     if PatchTargetFile(v.src, v.dest) and v.action then
-      if os.execute(v.action) ~= 0 then print("failed do post action " .. v.action .. " for " .. v.name) end
+      if not os.execute(v.action) then print("failed do post action " .. v.action .. " for " .. v.name) end
     end
   end
 end
@@ -156,7 +156,7 @@ end
 
 function CleanSaveSnapshot()
   local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
-  if os.execute(cmd) ~= 0 then
+  if not os.execute(cmd) then
     print("!!! Failed to clean snapshot with " .. cmd)
   end
 end
