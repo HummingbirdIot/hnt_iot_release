@@ -180,6 +180,8 @@ function hiot.Run()
   EnableBlueTooth()
   util.syncToUpstream(true, StopDockerCompose)
   StartHummingbird(true)
+  -- check for hm_diage upgrade
+  os.execute("bash ./hm_diag_upgrade.sh")
 end
 
 if arg[1] == "run" then
