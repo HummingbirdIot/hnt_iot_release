@@ -1,0 +1,12 @@
+{
+    "runtime": {
+        "version": "Lua 5.4"
+    },
+    "workspace": {
+        "maxPreload": 1600,
+        "ignoreDir": [
+            "node_modules/"
+        ]
+    }
+
+}
