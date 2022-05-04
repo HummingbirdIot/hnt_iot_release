@@ -4,6 +4,7 @@
     },
     "workspace": {
         "maxPreload": 1600,
+        "library": {"./lua": true, "./": true},
         "ignoreDir": [
             "node_modules/"
         ]
