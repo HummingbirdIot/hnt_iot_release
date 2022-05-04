@@ -1,4 +1,4 @@
-local HIoT = {}
+local hiot = {}
 
 local file = require("lua/file")
 local util = require("lua/util")
@@ -42,7 +42,7 @@ local function StartDockerCompose()
   return false
 end
 
-function HIoT.PruneDockerImages()
+function hiot.PruneDockerImages()
   StopDockerCompose()
   local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
   if not os.execute(cmd) then print("PruneDockerImages failed") end
@@ -63,7 +63,7 @@ local function StartHummingbird(tryPrune, retryNum)
   if not tryPrune then return false end
   StopDockerCompose()
   -- Try Prune the docker images
-  HIoT.PruneDockerImages()
+  hiot.PruneDockerImages()
   return StartHummingbird(false, 3)
 end
 
@@ -142,7 +142,7 @@ local function PatchServices()
   end
 end
 
-function HIoT.Test()
+function hiot.Test()
   local fileId = GetCurrentLuaFile()
   assert(file and util)
   assert(string.find(fileId, "hummingbird_iot.lua") ~= nil)
@@ -154,7 +154,7 @@ local function CheckPublicKeyFile()
   os.execute("sudo mkdir -p /var/data && sudo touch /var/data/public_keys")
 end
 
-function HIoT.CleanSaveSnapshot()
+function hiot.CleanSaveSnapshot()
   local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | "
   .. "sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
   if not os.execute(cmd) then
@@ -168,10 +168,10 @@ local function EnableBlueTooth()
   end
 end
 
-function HIoT.Run()
+function hiot.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
   print(GetCurrentLuaFile())
-  HIoT.CleanSaveSnapshot()
+  hiot.CleanSaveSnapshot()
   PatchServices()
   util.tryWaitNetwork()
   util.FreeDiskPressure()
@@ -183,7 +183,7 @@ function HIoT.Run()
 end
 
 if arg[1] == "run" then
-  HIoT.Run()
+  hiot.Run()
 else
-  return HIoT
+  return hiot
 end
