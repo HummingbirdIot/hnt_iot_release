@@ -163,13 +163,31 @@ function hiot.CleanSaveSnapshot()
 end
 
 local function EnableBlueTooth()
-  if not os.execute('sudo rfkill unblock all') then
+  if not os.execute("sudo rfkill unblock all") then
     print("Fail to enable bluetooth")
   end
 end
 
+local undefined_region = "undefined"
+
+function hiot.GetMinerRegion()
+  local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
+  if succuess then return region end
+  return undefined_region
+end
+
+--local function SetupRuntimeInfo()
+--  local hiotRuntime = { region = hiot.GetMinerRegion() }
+--  if hiotRuntime.region == undefined_region then
+--  -- load from lst
+--    if file.exists(".hiot_runtime") then
+--
+--    end
+--  end
+--end
 function hiot.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
+
   print(GetCurrentLuaFile())
   hiot.CleanSaveSnapshot()
   PatchServices()

@@ -9,6 +9,7 @@ describe(
           package.path = PWD .. "/lua/?.lua;" .. package.path
         end
 
+        local util = require("util")
         it(
           "should be easy to use",
           function()
@@ -44,9 +45,16 @@ describe(
         it(
           "util basic test should be ok",
           function()
-            local util = require("util")
 
             assert.same("hello", util.trim("hello  "))
+
+            -- for split
+            local test_str = "MINER_TAG=2022.04.27.0"
+            local split_ret = util.split(test_str, "=")
+            assert.same(#split_ret, 2)
+            assert.same(split_ret[1], "MINER_TAG")
+            assert.same(split_ret[2], "2022.04.27.0")
+
             local _, succuess = util.shell("nols /tmp")
             assert.falsy(succuess)
             local _, succuess_1 = util.shell("ls /tmp")
@@ -64,8 +72,7 @@ describe(
         it(
           "util network check test should ok",
           function()
-            local util = require("util")
-            assert.truthy(util.destIsReachable("8.8.8.8"))
+            assert.truthy(util.destIsReachable("taobao.com"))
             assert.falsy(util.destIsReachable("8.81.81.8"))
           end
         )
@@ -77,6 +84,24 @@ describe(
             assert.truthy(hiot.Test())
           end
         )
+        it (
+          "env test",
+          function ()
+            assert.truthy(os.execute("export LUA_HIOT_TEST='1234'; env | grep LUA_HIOT_TEST"))
+            assert.falsy(os.execute("export LUA_HIOT_TEST='1234'; env | grep LUA_HIOT_TEST1"))
+          end
+          )
+        it ("load file to table test",
+          --MINER_TAG=2022.04.27.0
+          --PKT_FWD=hnt-pkt-fwd-cn470
+          --PKT_FWD_VERSION=0.5.0
+
+          function ()
+            local info = util.loadFileToTable("./lua/test/.env")
+            assert.same(info.PKT_FWD, "hnt-pkt-fwd-cn470")
+            assert.same(info.PKT_FWD_VERSION, "0.5.0")
+            assert.same(info.MINER_TAG, "2022.04.27.0")
+          end)
       end
     )
   end

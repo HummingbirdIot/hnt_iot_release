@@ -19,6 +19,27 @@ assert(file.exists)
 
 local OTA_STATUS_FILE = "/tmp/hummingbird_ota"
 
+function util.split(str, sep)
+   local result = {}
+   local regex = ("([^%s]+)"):format(sep)
+   for each in str:gmatch(regex) do
+      table.insert(result, each)
+   end
+   return result
+end
+
+function util.loadFileToTable(name)
+  local ret = {}
+  if not file.exists(name) then return ret end
+  local content = file.read(name, "*a")
+  local lines = util.split(content, "\n")
+  for i=1, #lines do
+    local info = util.split(lines[i], "=")
+    if #info == 2 then ret[info[1]] = info[2] end
+  end
+  return ret
+end
+
 local function IsDarwin()
   return io.popen("uname -s", "r"):read("*l") == "Darwin"
 end
