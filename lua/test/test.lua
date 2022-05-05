@@ -10,6 +10,7 @@ describe(
         end
 
         local util = require("util")
+        local hiot = require("hummingbird_iot")
         it(
           "should be easy to use",
           function()
@@ -45,7 +46,6 @@ describe(
         it(
           "util basic test should be ok",
           function()
-
             assert.same("hello", util.trim("hello  "))
 
             -- for split
@@ -80,28 +80,51 @@ describe(
         it(
           "hiot basic test should ok",
           function()
-            local hiot = require("hummingbird_iot")
             assert.truthy(hiot.Test())
           end
         )
-        it (
+        it(
           "env test",
-          function ()
+          function()
             assert.truthy(os.execute("export LUA_HIOT_TEST='1234'; env | grep LUA_HIOT_TEST"))
             assert.falsy(os.execute("export LUA_HIOT_TEST='1234'; env | grep LUA_HIOT_TEST1"))
           end
-          )
-        it ("load file to table test",
+        )
+        it(
+          "load file to table test",
           --MINER_TAG=2022.04.27.0
           --PKT_FWD=hnt-pkt-fwd-cn470
           --PKT_FWD_VERSION=0.5.0
 
-          function ()
+          function()
             local info = util.loadFileToTable("./lua/test/.env")
             assert.same(info.PKT_FWD, "hnt-pkt-fwd-cn470")
             assert.same(info.PKT_FWD_VERSION, "0.5.0")
             assert.same(info.MINER_TAG, "2022.04.27.0")
-          end)
+          end
+        )
+        it(
+         "convert table to string for save",
+          function()
+            local str0 = "MINER_TAG=2022.04.27.0\n"
+            local str1 = "PKT_FWD=hnt-pkt-fwd-cn470\n"
+            local str2 = "PKT_FWD_VERSION=0.5.0\n"
+
+            local info = {MINER_TAG = "2022.04.27.0", PKT_FWD = "hnt-pkt-fwd-cn470", PKT_FWD_VERSION = "0.5.0"}
+            local tableStr = util.tableToString(info);
+            print(tableStr)
+            assert.is_not(string.find(tableStr, str0), nil)
+            assert.is_not(string.find(tableStr, str1), nil)
+            assert.is_not(string.find(tableStr, str2), nil)
+          end
+          )
+        it("get default lora region should cn470",
+          function ()
+            assert.same(hiot.GetDefaultLoraRegion(), "cn470")
+
+            assert.same("export PKT_FWD=hnt-pkt-fwd-cn470;", hiot.GetDockerEnvAndSetRuntimeInfo(true))
+          end
+          )
       end
     )
   end

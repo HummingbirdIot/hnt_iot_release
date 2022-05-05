@@ -35,7 +35,15 @@ function util.loadFileToTable(name)
   local lines = util.split(content, "\n")
   for i=1, #lines do
     local info = util.split(lines[i], "=")
-    if #info == 2 then ret[info[1]] = info[2] end
+    if #info == 2 then ret[util.trim(info[1])] = util.trim(info[2]) end
+  end
+  return ret
+end
+
+function util.tableToString(info)
+  local ret = ""
+  for k,v in pairs(info) do
+    if k then ret = ret .. util.trim(tostring(k)) .. "=" .. util.trim(tostring(v)) .. "\n" end
   end
   return ret
 end

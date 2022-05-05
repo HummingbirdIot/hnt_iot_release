@@ -4,6 +4,44 @@ local file = require("lua/file")
 local util = require("lua/util")
 local DockerComposeBin = "docker-compose"
 
+hiot.loraRegions = {
+  cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  region_cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-cn470" },
+}
+
+local undefined_region = "undefined"
+local hiotRuntimeConfig = "./.hiot_runtime"
+
+function hiot.GetMinerRegion()
+  local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
+  if succuess then return string.lower(region) end
+  return undefined_region
+end
+
+function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
+  local skipSet = skipSetRuntime or false
+  local hiotRuntime = { region = hiot.GetMinerRegion() }
+  -- load from lst
+  local info = util.loadFileToTable(hiotRuntimeConfig)
+  if not skipSet and hiotRuntime.region ~= undefined_region and hiotRuntime.region ~= info.region then
+    -- update runtime info
+    local hiotRuntimeStr = util.tableToString(hiotRuntime)
+    file.write(hiotRuntime, hiotRuntimeStr, "w")
+  end
+  return hiotRuntime
+end
+
+function hiot.GetDefaultLoraRegion()
+  local info = util.loadFileToTable("/etc/hummingbird_iot.config")
+  if info.region and info.region ~= undefined_region then return info.region end
+  return hiot.loraRegions.cn470.name
+end
+
+
 local function Sleep(n)
   os.execute("sleep " .. tonumber(n))
 end
@@ -31,10 +69,31 @@ local function StopDockerCompose()
   return false
 end
 
+function hiot.GetDockerEnvAndSetRuntimeInfo(skipSetRuntime)
+  local skipSet = skipSetRuntime or false
+  local runtimeRegion = hiot.GetAndSetRuntimeInfo(skipSet).region
+  print(" runtime region >>>> " .. runtimeRegion)
+  local region = hiot.loraRegions[runtimeRegion]
+  local dockerEnv = ""
+
+  if not (region and region.pkt_fwd) then
+    region = hiot.loraRegions[hiot.GetDefaultLoraRegion()]
+  end
+
+  if region then
+    dockerEnv = "export PKT_FWD=" .. region.pkt_fwd ..";"
+  else
+    print("!!!error get GetDefaultLoraRegion return", hiot.GetDefaultLoraRegion())
+  end
+
+  return dockerEnv
+end
+
 local function StartDockerCompose()
   local config = GetDockerComposeConfig()
-  print("Start hummingbird_iot docker compose with config " .. config)
-  local cmd = DockerComposeBin .. " -f " .. config .. " up -d"
+  local dockerEnv = hiot.GetDockerEnvAndSetRuntimeInfo()
+  local cmd = dockerEnv .. DockerComposeBin .. " -f " .. config .. " up -d"
+  print("StartHummingbird with cmd: " .. cmd)
   if os.execute(cmd) then return true
   else
     print("fail to start docker with " .. cmd)
@@ -168,23 +227,6 @@ local function EnableBlueTooth()
   end
 end
 
-local undefined_region = "undefined"
-
-function hiot.GetMinerRegion()
-  local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
-  if succuess then return region end
-  return undefined_region
-end
-
---local function SetupRuntimeInfo()
---  local hiotRuntime = { region = hiot.GetMinerRegion() }
---  if hiotRuntime.region == undefined_region then
---  -- load from lst
---    if file.exists(".hiot_runtime") then
---
---    end
---  end
---end
 function hiot.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
 
