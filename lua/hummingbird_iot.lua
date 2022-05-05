@@ -2,7 +2,10 @@ local hiot = {}
 
 local file = require("lua/file")
 local util = require("lua/util")
+
 local DockerComposeBin = "docker-compose"
+local undefined_region = "undefined"
+local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
 
 hiot.loraRegions = {
   cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
@@ -13,8 +16,49 @@ hiot.loraRegions = {
   region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915"}
 }
 
-local undefined_region = "undefined"
-local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
+local ServicesToPatch = {
+  {
+    name = "dhcpcd",
+    src = "config/patch/wait.conf",
+    dest = "/etc/systemd/system/dhcpcd.service.d/wait.conf",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart dhcpcd"
+  },
+  {
+    name = "hiotTimer",
+    src = "config/patch/hiot.timer",
+    dest = "/etc/systemd/system/hiot.timer",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
+  },
+  {
+    name = "avahi",
+    src = "config/patch/avahi-daemon.conf",
+    dest = "/etc/avahi/avahi-daemon.conf",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart avahi-daemon"
+  },
+  {
+    name = "journald",
+    src = "config/patch/journald.conf",
+    dest = "/etc/systemd/journald.conf",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart systemd-journald.service"
+  },
+  {
+    name = "dbus-miner",
+    src = "config/com.helium.Miner.conf",
+    dest = "/etc/dbus-1/system.d/com.helium.Miner.conf",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
+  },
+  {
+    name = "dbus-config",
+    src = "config/com.helium.Config.conf",
+    dest = "/etc/dbus-1/system.d/com.helium.Config.conf",
+    action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
+  },
+  {
+    name = "update release version",
+    src = "config/lsb_release",
+    dest = "/etc/lsb_release"
+  }
+}
 
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
@@ -165,52 +209,8 @@ local function PatchTargetFile(Src, Dest)
   return false
 end
 
-local function PatchServices()
-  local ServicesToPatch = {
-    {
-      name = "dhcpcd",
-      src = "config/patch/wait.conf",
-      dest = "/etc/systemd/system/dhcpcd.service.d/wait.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart dhcpcd"
-    },
-    {
-      name = "hiotTimer",
-      src = "config/patch/hiot.timer",
-      dest = "/etc/systemd/system/hiot.timer",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart hiot.timer"
-    },
-    {
-      name = "avahi",
-      src = "config/patch/avahi-daemon.conf",
-      dest = "/etc/avahi/avahi-daemon.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart avahi-daemon"
-    },
-    {
-      name = "journald",
-      src = "config/patch/journald.conf",
-      dest = "/etc/systemd/journald.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart systemd-journald.service"
-    },
-    {
-      name = "dbus-miner",
-      src = "config/com.helium.Miner.conf",
-      dest = "/etc/dbus-1/system.d/com.helium.Miner.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
-    },
-    {
-      name = "dbus-config",
-      src = "config/com.helium.Config.conf",
-      dest = "/etc/dbus-1/system.d/com.helium.Config.conf",
-      action = "sudo systemctl daemon-reload; sudo systemctl restart dbus"
-    },
-    {
-      name = "update release version",
-      src = "config/lsb_release",
-      dest = "/etc/lsb_release"
-    }
-  }
-
-  for _, v in pairs(ServicesToPatch) do
+local function PatchServices(services)
+  for _, v in pairs(services) do
     print("check for " .. v.name)
     if PatchTargetFile(v.src, v.dest) and v.action then
       if not os.execute(v.action) then
@@ -252,7 +252,7 @@ function hiot.Run()
 
   print(GetCurrentLuaFile())
   hiot.CleanSaveSnapshot()
-  PatchServices()
+  PatchServices(ServicesToPatch)
   util.tryWaitNetwork()
   util.FreeDiskPressure()
   util.gitSetup()
