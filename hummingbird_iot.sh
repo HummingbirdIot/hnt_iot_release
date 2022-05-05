@@ -252,7 +252,7 @@ function run() {
 command -v lua5.3 > /dev/null || apt install lua5.3 -y
 case $1 in
   run | '' )
-    run ;;
+    lua5.3 ./lua/hummingbird_iot.lua run ;;
   lua )
     lua5.3 ./lua/hummingbird_iot.lua run ;;
   stop )

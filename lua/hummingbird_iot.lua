@@ -5,12 +5,12 @@ local util = require("lua/util")
 local DockerComposeBin = "docker-compose"
 
 hiot.loraRegions = {
-  cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868" },
-  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915" },
-  region_cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868" },
-  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915" },
+  cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
+  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868"},
+  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915"},
+  region_cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
+  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868"},
+  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915"}
 }
 
 local undefined_region = "undefined"
@@ -18,29 +18,35 @@ local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
 
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
-  if succuess then return string.lower(region) end
+  if succuess then
+    return string.lower(region)
+  end
   return undefined_region
 end
 
 function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
   local skipSet = skipSetRuntime or false
-  local hiotRuntime = { region = hiot.GetMinerRegion() }
+  local hiotRuntime = {region = hiot.GetMinerRegion()}
   -- load from lst
   local info = util.loadFileToTable(hiotRuntimeConfig)
-  if not skipSet and hiotRuntime.region ~= undefined_region and hiotRuntime.region ~= info.region then
+
+  if hiotRuntime.region == undefined_region then
+    hiotRuntime.region = info.region
+  elseif hiotRuntime.region ~= info.region and not skipSet then
     -- update runtime info
-    local hiotRuntimeStr = util.tableToString(hiotRuntime)
-    file.write(hiotRuntimeConfig, hiotRuntimeStr, "w")
+      local hiotRuntimeStr = util.tableToString(hiotRuntime)
+      file.write(hiotRuntimeConfig, hiotRuntimeStr, "w")
   end
   return hiotRuntime
 end
 
 function hiot.GetDefaultLoraRegion()
   local info = util.loadFileToTable("/etc/hummingbird_iot.config")
-  if info.region and info.region ~= undefined_region then return info.region end
+  if info.region and info.region ~= undefined_region then
+    return info.region
+  end
   return hiot.loraRegions.cn470.name
 end
-
 
 local function Sleep(n)
   os.execute("sleep " .. tonumber(n))
@@ -62,7 +68,8 @@ local function StopDockerCompose()
   local config = GetDockerComposeConfig()
   print("Stop hummingbird_iot docker compose with config " .. config)
   local cmd = DockerComposeBin .. " -f " .. config .. " down"
-  if os.execute(cmd) then return true
+  if os.execute(cmd) then
+    return true
   else
     print("fail to stop docker with " .. cmd)
   end
@@ -82,7 +89,7 @@ function hiot.GetDockerEnvAndSetRuntimeInfo(skipSetRuntime)
   end
 
   if region then
-    dockerEnv = "export PKT_FWD=" .. region.pkt_fwd ..";"
+    dockerEnv = "export PKT_FWD=" .. region.pkt_fwd .. ";"
   else
     print("!!!error get GetDefaultLoraRegion return", hiot.GetDefaultLoraRegion())
   end
@@ -95,7 +102,8 @@ local function StartDockerCompose()
   local dockerEnv = hiot.GetDockerEnvAndSetRuntimeInfo()
   local cmd = dockerEnv .. DockerComposeBin .. " -f " .. config .. " up -d"
   print("StartHummingbird with cmd: " .. cmd)
-  if os.execute(cmd) then return true
+  if os.execute(cmd) then
+    return true
   else
     print("fail to start docker with " .. cmd)
   end
@@ -104,23 +112,31 @@ end
 
 function hiot.PruneDockerImages()
   StopDockerCompose()
-  local cmd = "sudo docker images -a | grep \"miner-arm64\" | awk '{print $3}' | xargs docker rmi"
-  if not os.execute(cmd) then print("PruneDockerImages failed") end
+  local cmd = 'sudo docker images -a | grep "miner-arm64" | awk \'{print $3}\' | xargs docker rmi'
+  if not os.execute(cmd) then
+    print("PruneDockerImages failed")
+  end
 end
 
 local function StartHummingbird(tryPrune, retryNum)
   print("Start Hummingbrid tryPrune: " .. tostring(tryPrune) .. " retryNum num: " .. tostring(retryNum))
   local tryNum = retryNum or 30
   while (tryNum > 0) do
-    if StartDockerCompose() then return true end
+    if StartDockerCompose() then
+      return true
+    end
     print("retry times: " .. tostring(tryNum))
     tryNum = tryNum - 1
     Sleep(1)
   end
 
-  if not util.destIsReachable('8.8.8.8') then return false end
+  if not util.destIsReachable("8.8.8.8") then
+    return false
+  end
   print("Networking check ok ...")
-  if not tryPrune then return false end
+  if not tryPrune then
+    return false
+  end
   StopDockerCompose()
   -- Try Prune the docker images
   hiot.PruneDockerImages()
@@ -197,7 +213,9 @@ local function PatchServices()
   for _, v in pairs(ServicesToPatch) do
     print("check for " .. v.name)
     if PatchTargetFile(v.src, v.dest) and v.action then
-      if not os.execute(v.action) then print("failed do post action " .. v.action .. " for " .. v.name) end
+      if not os.execute(v.action) then
+        print("failed do post action " .. v.action .. " for " .. v.name)
+      end
     end
   end
 end
@@ -215,8 +233,9 @@ local function CheckPublicKeyFile()
 end
 
 function hiot.CleanSaveSnapshot()
-  local cmd = "find /var/data/saved-snaps/ -type f -printf \"%T@ %p\\n\" | "
-  .. "sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
+  local cmd =
+    'find /var/data/saved-snaps/ -type f -printf "%T@ %p\\n" | ' ..
+    "sort -r | awk 'NR==2,NR=NRF {print $2}' | xargs -I {} rm {}"
   if not os.execute(cmd) then
     print("!!! Failed to clean snapshot with " .. cmd)
   end
