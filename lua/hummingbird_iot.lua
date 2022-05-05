@@ -6,11 +6,11 @@ local DockerComposeBin = "docker-compose"
 
 hiot.loraRegions = {
   cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868" },
+  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915" },
   region_cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-cn470" },
-  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-cn470" },
+  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868" },
+  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915" },
 }
 
 local undefined_region = "undefined"
