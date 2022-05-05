@@ -70,7 +70,7 @@ function util.shell(cmd)
   local fileHandle = assert(io.popen(cmd, "r"))
   local commandOutput = assert(fileHandle:read("*a"))
   local success = fileHandle:close()
-  return commandOutput, success
+  return util.trim(commandOutput), success
 end
 
 function util.tryWaitNetwork(timeout)
