@@ -8,12 +8,9 @@ local undefined_region = "undefined"
 local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
 
 hiot.loraRegions = {
-  cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
-  eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868"},
-  us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915"},
-  region_cn470 = {name = "cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
-  region_eu868 = {name = "eu868", pkt_fwd = "hnt-pkt-fwd-eu868"},
-  region_us915 = {name = "us915", pkt_fwd = "hnt-pkt-fwd-us915"}
+  region_cn470 = {name = "region_cn470", pkt_fwd = "hnt-pkt-fwd-cn470"},
+  region_eu868 = {name = "region_eu868", pkt_fwd = "hnt-pkt-fwd-eu868"},
+  region_us915 = {name = "region_us915", pkt_fwd = "hnt-pkt-fwd-us915"}
 }
 
 local ServicesToPatch = {
@@ -60,10 +57,18 @@ local ServicesToPatch = {
   }
 }
 
+-- US915 -> region_us915
+local function PatchForRegion(region)
+  region = string.lower(util.trim(region))
+  if region == undefined_region then return region end
+  if string.find(region, "region") then return region end
+  return "region_" .. region
+end
+
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
   if succuess then
-    return string.lower(util.trim(region))
+    return PatchForRegion(region)
   end
   return undefined_region
 end
@@ -89,7 +94,7 @@ function hiot.GetDefaultLoraRegion()
   if info.region and info.region ~= undefined_region then
     return info.region
   end
-  return hiot.loraRegions.cn470.name
+  return hiot.loraRegions.region_cn470.name
 end
 
 local function Sleep(n)
@@ -225,6 +230,11 @@ function hiot.Test()
   assert(file and util)
   assert(string.find(fileId, "hummingbird_iot.lua") ~= nil)
   assert(GetDockerComposeConfig() == "docker-compose-v2.yaml")
+  assert(PatchForRegion("CN470") == "region_cn470")
+  assert(PatchForRegion("cn470 ") == "region_cn470")
+  assert(PatchForRegion("region_cn470") == "region_cn470")
+  assert(PatchForRegion(undefined_region) == "undefined")
+
   return true
 end
 

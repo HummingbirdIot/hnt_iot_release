@@ -78,7 +78,7 @@ describe(
         )
 
         it(
-          "hiot basic test should ok",
+          "hiot basic self test should ok",
           function()
             assert.truthy(hiot.Test())
           end
@@ -118,9 +118,9 @@ describe(
             assert.is_not(string.find(tableStr, str2), nil)
           end
           )
-        it("get default lora region should cn470",
+        it("get default lora region should region_cn470",
           function ()
-            assert.same(hiot.GetDefaultLoraRegion(), "cn470")
+            assert.same(hiot.GetDefaultLoraRegion(), "region_cn470")
 
             assert.same("export PKT_FWD=hnt-pkt-fwd-cn470;", hiot.GetDockerEnvAndSetRuntimeInfo(true))
             assert.same("hnt-pkt-fwd-cn470", hiot.loraRegions["region_cn470"].pkt_fwd)
