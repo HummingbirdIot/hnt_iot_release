@@ -14,7 +14,7 @@ hiot.loraRegions = {
 }
 
 local undefined_region = "undefined"
-local hiotRuntimeConfig = "./.hiot_runtime"
+local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
 
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
@@ -30,7 +30,7 @@ function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
   if not skipSet and hiotRuntime.region ~= undefined_region and hiotRuntime.region ~= info.region then
     -- update runtime info
     local hiotRuntimeStr = util.tableToString(hiotRuntime)
-    file.write(hiotRuntime, hiotRuntimeStr, "w")
+    file.write(hiotRuntimeConfig, hiotRuntimeStr, "w")
   end
   return hiotRuntime
 end
