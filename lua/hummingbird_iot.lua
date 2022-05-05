@@ -76,6 +76,7 @@ function hiot.GetDockerEnvAndSetRuntimeInfo(skipSetRuntime)
   local region = hiot.loraRegions[runtimeRegion]
   local dockerEnv = ""
 
+  print("runtime region pkt_fwd >>>> " .. region.pkt_fwd)
   if not (region and region.pkt_fwd) then
     region = hiot.loraRegions[hiot.GetDefaultLoraRegion()]
   end
