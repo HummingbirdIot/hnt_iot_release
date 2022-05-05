@@ -123,6 +123,7 @@ describe(
             assert.same(hiot.GetDefaultLoraRegion(), "cn470")
 
             assert.same("export PKT_FWD=hnt-pkt-fwd-cn470;", hiot.GetDockerEnvAndSetRuntimeInfo(true))
+            assert.same("hnt-pkt-fwd-cn470", hiot.loraRegions["region_cn470"].pkt_fwd)
           end
           )
       end

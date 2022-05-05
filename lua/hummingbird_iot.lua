@@ -19,7 +19,7 @@ local hiotRuntimeConfig = "./.hummingbird_iot_runtime"
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
   if succuess then
-    return string.lower(region)
+    return string.lower(util.trim(region))
   end
   return undefined_region
 end
@@ -79,7 +79,7 @@ end
 function hiot.GetDockerEnvAndSetRuntimeInfo(skipSetRuntime)
   local skipSet = skipSetRuntime or false
   local runtimeRegion = hiot.GetAndSetRuntimeInfo(skipSet).region
-  if runtimeRegion then print(" runtime region >>>> " .. runtimeRegion) end
+  if runtimeRegion then print(" runtime region >>>> " .. runtimeRegion .. ".") end
   local region = hiot.loraRegions[runtimeRegion]
   local dockerEnv = ""
 
