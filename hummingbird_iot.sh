@@ -2,7 +2,7 @@
 set -x
 source "$(dirname "$0")/const.sh"
 
-VERSION=0.8
+VERSION=1.0
 SELF_NAME=`basename "$0"`
 
 function retry()
