@@ -57,18 +57,17 @@ local ServicesToPatch = {
   }
 }
 
--- US915 -> region_us915
-local function PatchForRegion(region)
+local function CheckForRegion(region)
   region = string.lower(util.trim(region))
   if region == undefined_region then return region end
   if string.find(region, "region") then return region end
-  return "region_" .. region
+  return undefined_region
 end
 
 function hiot.GetMinerRegion()
   local region, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info region")
   if succuess then
-    return PatchForRegion(region)
+    return CheckForRegion(region)
   end
   return undefined_region
 end
@@ -230,10 +229,11 @@ function hiot.Test()
   assert(file and util)
   assert(string.find(fileId, "hummingbird_iot.lua") ~= nil)
   assert(GetDockerComposeConfig() == "docker-compose-v2.yaml")
-  assert(PatchForRegion("CN470") == "region_cn470")
-  assert(PatchForRegion("cn470 ") == "region_cn470")
-  assert(PatchForRegion("region_cn470") == "region_cn470")
-  assert(PatchForRegion(undefined_region) == "undefined")
+  assert(CheckForRegion(undefined_region) == "undefined")
+  assert(CheckForRegion("CN470") == undefined_region)
+  assert(CheckForRegion("cn470 ") == undefined_region)
+  assert(CheckForRegion("region_cn470") == "region_cn470")
+  assert(CheckForRegion("region_cn470 ") == "region_cn470")
 
   return true
 end
