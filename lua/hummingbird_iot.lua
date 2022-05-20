@@ -61,7 +61,19 @@ local function CheckForRegion(region)
   region = string.lower(util.trim(region))
   if region == undefined_region then return region end
   if string.find(region, "region") then return region end
+  local height = hiot.GetHeight()
+  -- just at some height helium change the format from region_xx to XX
+  if height >= 1360000 then return "region_" .. region end
   return undefined_region
+end
+
+function hiot.GetHeight()
+  local height, succuess = util.shell("docker exec hnt_iot_helium-miner_1 miner info height")
+  if succuess then
+    local info = util.split(height, "\t")
+    if #info == 2 then return tonumber(info[2]) end
+  end
+  return 0
 end
 
 function hiot.GetMinerRegion()
