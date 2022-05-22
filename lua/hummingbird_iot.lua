@@ -161,6 +161,12 @@ local function StartDockerCompose()
   local config = GetDockerComposeConfig()
   local dockerEnv = hiot.GetDockerEnvAndSetRuntimeInfo()
   local cmd = dockerEnv .. DockerComposeBin .. " -f " .. config .. " up -d"
+
+  if file.exists('.hook.sh') then
+    print("load customer script")
+    os.execute("sudo bash .hook.sh")
+  end
+
   print("StartHummingbird with cmd: " .. cmd)
   if os.execute(cmd) then
     return true
