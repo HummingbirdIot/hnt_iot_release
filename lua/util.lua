@@ -98,6 +98,13 @@ function util.destIsReachable(dest)
   return os.execute(cmd)
 end
 
+function util.patchGit()
+  print("check git safe.directory setup");
+  if os.execute("git config --get safe.directory |grep `pwd`") then return end
+  print("apply git safe.directory for system");
+  if not os.execute("git config --system --add safe.directory `pwd`") then print("fail to apply git patch") end
+end
+
 function util.gitSetup()
   local cmds = {
     "git config user.email 'hummingbirdiot@example.com'",
