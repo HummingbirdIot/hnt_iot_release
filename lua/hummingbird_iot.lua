@@ -297,7 +297,13 @@ function hiot.Run()
   EnableBlueTooth()
   if hiot.IsLight() then
     local light = require("lua/light")
-    util.syncToUpstream(true, light.Stop)
+    local light_upgrade = require("lua/light_upgrade")
+
+    util.syncToUpstream(true, function ()
+      light.Stop()
+      light_upgrade.run()
+    end)
+
     light.start()
   else
     util.syncToUpstream(true, StopDockerCompose)

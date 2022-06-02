@@ -2,6 +2,7 @@ local lightGW = {}
 
 local json = require("lua/json")
 local util = require("lua/util")
+local light_upgrade = require("lua/light_upgrade")
 
 function lightGW.GetMinerRegion()
   local info, succuess = util.shell('helium_gateway info -k region')
