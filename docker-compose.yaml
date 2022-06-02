@@ -34,7 +34,7 @@ services:
       - '/var/data/:/var/data'
       - '/etc/lsb_release:/etc/lsb_release'
       - 'pktfwdr:/var/pktfwd'
-        # - './config/overlay/docker.config:/opt/miner/releases/${MINER_TAG}/sys.config'
+      - './config/overlay/docker.config:/opt/miner/releases/${MINER_TAG}/sys.config'
       - '/tmp:/tmp'
     cap_add:
       - SYS_RAWIO
