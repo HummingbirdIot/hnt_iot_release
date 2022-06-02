@@ -1,4 +1,4 @@
-local hiot = {}
+local hiot = { RuntimeConfig = {} }
 
 local file = require("lua/file")
 local util = require("lua/util")
@@ -100,10 +100,16 @@ function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
   return hiotRuntime
 end
 
+function hiot.IsLight()
+  if not hiot.RuntimeConfig.light and hiot.RuntimeConfig.light == true then
+    return true
+  end
+  return false
+end
+
 function hiot.GetDefaultLoraRegion()
-  local info = util.loadFileToTable("/etc/hummingbird_iot.config")
-  if info.region and info.region ~= undefined_region then
-    return info.region
+  if not hiot.RuntimeConfig.region and hiot.RuntimeConfig.region ~= undefined_region then
+    return hiot.RuntimeConfig.region
   end
   return hiot.loraRegions.region_cn470.name
 end
@@ -278,6 +284,8 @@ end
 function hiot.Run()
   print(">>>>> hummingbirdiot start <<<<<<")
 
+  hiot.RuntimeConfig = util.loadFileToTable("/etc/hummingbird_iot.config")
+
   print(GetCurrentLuaFile())
   hiot.CleanSaveSnapshot()
   PatchServices(ServicesToPatch)
@@ -287,8 +295,14 @@ function hiot.Run()
   util.gitSetup()
   CheckPublicKeyFile()
   EnableBlueTooth()
-  util.syncToUpstream(true, StopDockerCompose)
-  StartHummingbird(true)
+  if hiot.IsLight() then
+    local light = require("lua/light")
+    util.syncToUpstream(true, light.Stop)
+    light.start()
+  else
+    util.syncToUpstream(true, StopDockerCompose)
+    StartHummingbird(true)
+  end
   -- check for hm_diage upgrade
   os.execute("bash ./hm_diag_upgrade.sh")
 end
