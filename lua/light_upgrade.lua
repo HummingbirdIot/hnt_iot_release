@@ -43,15 +43,18 @@ local function UpgradeAndInstall(version, fileName)
       url = info.releaseFileProxy.value .. url
     end
   end
-  local tmpFile = '/tmp/light_gw' .. os.date("!%H%M%S") .. ".deb"
+  local tmpFile = "/tmp/light_gw" .. os.date("!%H%M%S") .. ".deb"
   local cmd = "wget -O " .. tmpFile .. " " .. url .. " && sudo dpkg -i " .. tmpFile
   print(cmd)
+  if not os.execute(cmd) then
+    print("Fail to download deb and install")
+  end
 end
 
 function light_upgrade.run()
   print("this is light_upgrade main")
   local upStreamVersion = GetUpstreamVersion()
-  if upStreamVersion ~=GetCurrentVersion() then
+  if upStreamVersion ~= GetCurrentVersion() then
     local fileName = GetReleaseFile(upStreamVersion, GetArch())
     UpgradeAndInstall(upStreamVersion, fileName)
   end
