@@ -36,7 +36,7 @@ local function GetArch()
 end
 
 local function UpgradeAndInstall(version, fileName)
-  local url = "https://github.com/helium/gateway-rs/releases/download/" .. version .. "/" .. fileName
+  local url = "https://github.com/helium/gateway-rs/releases/download/v" .. version .. "/" .. fileName
   if file.exists(".proxyconf") then
     local info = json.decode(file.read(".proxyconf"))
     if info.releaseFileProxy.type == "urlPrefix" then
