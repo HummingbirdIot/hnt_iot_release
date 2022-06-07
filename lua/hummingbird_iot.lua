@@ -101,7 +101,7 @@ function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
 end
 
 function hiot.IsLight()
-  if not hiot.RuntimeConfig.light and hiot.RuntimeConfig.light == true then
+  if not hiot.RuntimeConfig.light and hiot.RuntimeConfig.light == "true" then
     return true
   end
   return false
@@ -304,7 +304,7 @@ function hiot.Run()
       light_upgrade.run()
     end)
 
-    light.start()
+    light.Start()
   else
     util.syncToUpstream(true, StopDockerCompose)
     StartHummingbird(true)

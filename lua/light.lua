@@ -25,4 +25,8 @@ function lightGW.Start()
   print("Started helium_gateway")
 end
 
-return lightGW
+if ... then
+  return lightGW
+else
+  lightGW.Start()
+end
