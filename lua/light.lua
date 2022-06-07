@@ -13,6 +13,7 @@ function lightGW.GetMinerRegion()
 end
 
 function lightGW.Stop()
+  print("<<<< stop helium_gateway")
   if not os.execute("sudo systemctl stop helium_gateway") then
     print("fail to stop helium gateway")
   end
@@ -22,7 +23,7 @@ function lightGW.Start()
   if not os.execute("sudo systemctl start helium_gateway") then
     print("fail to start helium gateway")
   end
-  print("Started helium_gateway")
+  print(">>>> Start helium_gateway")
 end
 
 if ... then
