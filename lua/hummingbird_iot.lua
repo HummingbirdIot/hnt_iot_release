@@ -101,14 +101,14 @@ function hiot.GetAndSetRuntimeInfo(skipSetRuntime)
 end
 
 function hiot.IsLight()
-  if not hiot.RuntimeConfig.light and hiot.RuntimeConfig.light == "true" then
+  if hiot.RuntimeConfig ~= nil and hiot.RuntimeConfig.light == "true" then
     return true
   end
   return false
 end
 
 function hiot.GetDefaultLoraRegion()
-  if not hiot.RuntimeConfig.region and hiot.RuntimeConfig.region ~= undefined_region then
+  if hiot.RuntimeConfig ~= nil and hiot.RuntimeConfig.region ~= undefined_region then
     return hiot.RuntimeConfig.region
   end
   return hiot.loraRegions.region_cn470.name
