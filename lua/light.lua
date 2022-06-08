@@ -20,10 +20,11 @@ function lightGW.Stop()
 end
 
 function lightGW.Start()
+  light_upgrade.Run(lightGW.Stop)
+  print(">>>> Start helium_gateway")
   if not os.execute("sudo systemctl start helium_gateway") then
     print("fail to start helium gateway")
   end
-  print(">>>> Start helium_gateway")
 end
 
 if ... then

@@ -51,10 +51,11 @@ local function UpgradeAndInstall(version, fileName)
   end
 end
 
-function light_upgrade.run()
-  print("this is light_upgrade main")
+function light_upgrade.Run(callback)
+  print(">>>> check helium_gateway updated")
   local upStreamVersion = GetUpstreamVersion()
   if upStreamVersion ~= GetCurrentVersion() then
+    if callback ~= nil then callback() end
     local fileName = GetReleaseFile(upStreamVersion, GetArch())
     UpgradeAndInstall(upStreamVersion, fileName)
   end
@@ -63,5 +64,5 @@ end
 if ... then
   return light_upgrade
 else
-  light_upgrade.run()
+  light_upgrade.Run()
 end
