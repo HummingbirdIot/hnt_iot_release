@@ -13,7 +13,7 @@ services:
     devices:
       - "/dev/spidev3.0:/dev/spidev0.0"
   helium-miner:
-    image: "quay.io/team-helium/miner:miner-arm64_${MINER_TAG}_GA"
+    image: "quay.io/team-helium/miner:${MINER_TAG}"
     privileged: true
     network_mode: "host"
     restart: always
@@ -33,7 +33,7 @@ services:
       - '/var/run/dbus:/var/run/dbus'
       - '/var/data/:/var/data'
       - '/etc/lsb_release:/etc/lsb_release'
-      - 'pktfwdr:/var/pktfwd'
+      - './config/helium_gateway/:/etc/helium_gateway/'
       - './config/overlay/docker.config:/opt/miner/releases/${MINER_TAG}/sys.config'
       - '/tmp:/tmp'
     cap_add:
